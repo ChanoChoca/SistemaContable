@@ -1,0 +1,24 @@
+<div class="navbar-container sticky top-0 border-bottom-1 border-gray-200 shadow-1 z-1">
+  <p-toolbar class="toolbar bg-white border-top-none border-x-none border-noround">
+    <div class="toolbar-group-left">
+      <div class="logo-container">
+        <img src="assets/logo.png" alt="Restaurant Logo">
+        <div class="logo-text">Sistema Contable</div>
+      </div>
+    </div>
+    <div class="toolbar-group-right">
+      <div class="nav-buttons">
+        <a routerLink="/" class="nav-button"><b>Inicio</b></a>
+        <a routerLink="/libro-diario" class="nav-button"><b>Libro Diario</b></a>
+        <a routerLink="/libro-mayor" class="nav-button"><b>Libro Mayor</b></a>
+        <a routerLink="/cuentas" class="nav-button"><b>Plan De Cuentas</b></a>
+        <a routerLink="/asientos" class="nav-button"><b>Asientos Contables</b></a>
+      </div>
+      <p-menu #menu [model]="currentMenuItems" [popup]="true" class="menu-popup"></p-menu>
+      <button (click)="menu.toggle($event)" class="menu-toggle-button text-center" >
+        <fa-icon [icon]="'bars'" class="menu-icon avatar-sm"></fa-icon>
+        <app-avatar [imageUrl]="connectedUser.imageUrl" avatarSize="avatar-sm" class="avatar12 text-center"></app-avatar>
+      </button>
+    </div>
+  </p-toolbar>
+</div>

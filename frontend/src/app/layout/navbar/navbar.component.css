@@ -1,0 +1,83 @@
+.navbar-container {
+  background-color: darkgray;
+  padding: 10px;
+}
+
+.toolbar {
+
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.logo-container img {
+  height: 40px;
+  margin-right: 10px;
+}
+
+.logo-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.toolbar-group-right {
+  display: flex;
+  align-items: center;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 15px;
+  margin-right: 20px;
+}
+
+.nav-button {
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.nav-button:hover {
+  color: #857877; /* Cambia el color del texto al pasar el mouse */
+  text-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Agrega un resplandor al texto */
+}
+
+.menu-popup {
+  margin-right: 15px;
+}
+
+.menu-toggle-button {
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  cursor: pointer;
+  border-radius: 18% !important;
+}
+
+.menu-icon {
+  font-size: 20px;
+}
+
+/*.app-avatar {*/
+/*  border-radius: 50%;*/
+/*  border: 2px solid #6c757d;*/
+/*}*/
+
+.avatar12{
+  align-items: center;
+  align-content: center;
+}
+
+.avatar-sm {
+  width: 35.75px;
+  height: 35.75px;
+  align-content: center;
+}

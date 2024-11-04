@@ -1,0 +1,39 @@
+<form (ngSubmit)="onSubmit()" enctype="multipart/form-data">
+  <h1>Formulario de Creación/Edición (Plan de Cuentas)</h1>
+
+  <!-- Campo Nombre -->
+  <div>
+    <label for="nombre">Nombre:</label>
+    <input type="text" id="nombre" [(ngModel)]="cuenta.nombre" name="nombre" required />
+  </div>
+
+  <!-- Campo Código -->
+  <div>
+    <label for="codigo">Código:</label>
+    <input type="text" id="codigo" [(ngModel)]="cuenta.codigo" name="codigo" required />
+  </div>
+
+  <!-- Selector de Cuenta Padre -->
+  <div>
+    <label for="cuentaPadre">Cuenta Padre:</label>
+    <select id="cuentaPadre" [(ngModel)]="cuenta.cuentaPadre" name="cuentaPadre">
+      <option [ngValue]="null">Ninguna</option>
+      @for (cuenta of cuentas; track cuenta) {
+        <option [ngValue]="cuenta">{{ cuenta.nombre }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Selector Múltiple para Subcuentas -->
+  <div>
+    <label for="subCuentas">Subcuentas:</label>
+    <select id="subCuentas" [(ngModel)]="cuenta.subCuentas" name="subCuentas" multiple>
+      <option [ngValue]=null>Ninguna</option>
+      @for (cuenta of cuentas; track cuenta) {
+        <option [ngValue]="cuenta">{{ cuenta.nombre }}</option>
+      }
+    </select>
+  </div>
+
+  <button type="submit">{{ isEditMode ? 'Actualizar' : 'Crear' }} Plan de Cuenta</button>
+</form>

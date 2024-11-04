@@ -1,0 +1,50 @@
+<div class="asiento-list-container">
+  <h2>Lista de Asientos Contables</h2>
+
+  @if (hasRoleAdmin()) {
+    <div class="boton">
+      <button class="btn btn-secondary btn-padding" [routerLink]="['/asiento/new']">Crear Asiento Contable</button>
+    </div>
+  }
+
+  @if (asientos.length > 0) {
+    <!-- Tabla de asientos -->
+    <table class="asiento-table">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Fecha</th>
+        <th>Usuario</th>
+        @if (hasRoleAdmin()) {
+          <th>Acciones</th>
+        }
+      </tr>
+      </thead>
+      <tbody>
+        @for (asiento of asientos; track asiento) {
+          <tr>
+            <td>{{ asiento.id }}</td>
+            <td>{{ asiento.fecha | date: 'dd/MM/yyyy' }}</td>
+            <td>{{ asiento.usuarioEmail }}</td>
+            @if (hasRoleAdmin()) {
+              <td>
+                <button class="delete-button" (click)="deleteAsiento(asiento)">Eliminar</button>
+                <button class="btn btn-secondary" [routerLink]="['/asiento/edit', asiento.id]">Modificar</button>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="pagination-container">
+      <button class="btn btn-secondary" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
+      <span class="page-indicator">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+      <button class="btn btn-secondary" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage + 1 >= totalPages">Siguiente</button>
+    </div>
+  } @else {
+    <div class="no-asientos">
+      <p>No hay asientos contables disponibles.</p>
+    </div>
+  }
+</div>

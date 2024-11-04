@@ -1,0 +1,27 @@
+.asiento-list-container {
+  padding: 20px;
+}
+.asiento-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.asiento-table th,
+.asiento-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+.delete-button {
+  color: white;
+  background-color: red;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.delete-button:hover {
+  background-color: darkred;
+}
+.no-asientos {
+  margin-top: 20px;
+  color: gray;
+}

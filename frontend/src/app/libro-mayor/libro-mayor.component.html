@@ -1,0 +1,69 @@
+<div class="libro-mayor-container">
+  <h2>Libro Mayor</h2>
+
+  <!-- Formulario de filtro -->
+  <form [formGroup]="filtroForm" (ngSubmit)="onSearch()">
+    <div class="form-group">
+      <label for="cuentaId">Cuenta:</label>
+      <select id="cuentaId" formControlName="cuentaId">
+        <option value="">Seleccione una cuenta</option>
+        @for (cuenta of cuentas; track cuenta) {
+          <option [value]="cuenta.id">{{cuenta.nombre}}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="fechaInicio">Fecha Inicio:</label>
+      <input type="date" id="fechaInicio" formControlName="fechaInicio" />
+    </div>
+    <div class="form-group">
+      <label for="fechaFin">Fecha Fin:</label>
+      <input type="date" id="fechaFin" formControlName="fechaFin" />
+    </div>
+    <button type="submit" class="btn btn-primary">Buscar</button>
+    <button type="button" class="btn btn-secondary" (click)="clearFilters()">Limpiar</button>
+  </form>
+
+  <!-- Tabla de asientos -->
+  @if (movimientos.length > 0) {
+    <div>
+      <table class="asiento-table">
+        <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Operación</th>
+          <th>Debe</th>
+          <th>Haber</th>
+          <th>Saldo</th>
+          <th>Cuenta</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (movimiento of movimientos; track movimiento; let i = $index) {
+          <tr>
+            <td>{{ movimiento.asiento.fecha | date: 'dd/MM/yyyy' }}</td>
+            <td>{{movimiento.descripcion}}</td>
+
+            @if (movimiento.esDebito) {
+              <td>{{movimiento.monto}}</td>
+              <td></td>
+            } @else {
+              <td></td>
+              <td>{{movimiento.monto}}</td>
+            }
+
+            <td>{{ saldoAcumulativo[i] }}</td>
+            <td>{{movimiento.asiento.usuarioEmail}}</td>
+          </tr>
+        }
+        </tbody>
+      </table>
+
+      <button type="button" class="btn btn-success" (click)="imprimirLibroMayor()">Imprimir Libro Mayor</button>
+    </div>
+  } @else {
+    <div class="no-asientos">
+      <p>No hay asientos contables para la cuenta seleccionada en el rango de fechas.</p>
+    </div>
+  }
+</div>

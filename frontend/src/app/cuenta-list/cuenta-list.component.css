@@ -1,0 +1,30 @@
+.cuenta-list-container {
+  padding: 20px;
+}
+.search-bar {
+  margin-bottom: 15px;
+}
+.cuenta-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.cuenta-table th,
+.cuenta-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+.delete-button {
+  color: white;
+  background-color: red;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.delete-button:hover {
+  background-color: darkred;
+}
+.no-accounts {
+  margin-top: 20px;
+  color: gray;
+}

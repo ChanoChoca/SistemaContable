@@ -1,0 +1,63 @@
+<div class="cuenta-list-container">
+  <h2>Lista de Cuentas</h2>
+
+  @if (hasRoleAdmin()) {
+    <!--
+    El plan de cuentas podrá ser visualizado por cualquier usuario, pero solo el administrador
+podrá agregar y eliminar nuevas cuentas y modificar algunos atributos de una cuenta. Se debe
+tener presente, que la eliminación de manera física o lógica de la cuenta va a depender de si
+fue usada en algun asiento. Por la misma condición se determinarán los campos objeto de una
+posible modificación.
+ -->
+    <div class="boton">
+      <button class="btn btn-secondary btn-padding" [routerLink]="['/cuenta/new']">Crear plan de cuenta</button>
+    </div>
+  }
+
+  <!-- Barra de búsqueda -->
+  <div class="filter-container">
+    <input type="text" class="form-control" [(ngModel)]="nombre" placeholder="Filtrar por nombre" />
+    <button class="btn btn-secondary" (click)="onSearch()">Buscar</button>
+    <button class="btn btn-secondary" (click)="clearFilters()">Limpiar Filtros</button>
+  </div>
+
+  @if (!(cuentas.length === 0)) {
+    <!-- Tabla de cuentas -->
+    <table class="cuenta-table">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        @if (hasRoleAdmin()) {
+          <th>Acciones</th>
+        }
+      </tr>
+      </thead>
+      <tbody>
+        @for (cuenta of cuentas; track cuenta) {
+          <tr>
+            <td>{{ cuenta.id }}</td>
+            <td>{{ cuenta.nombre }}</td>
+            @if (hasRoleAdmin()) {
+              <td>
+                <button class="delete-button" (click)="deleteCuenta(cuenta)">Eliminar</button>
+                <button class="btn btn-secondary" [routerLink]="['/cuenta/edit', cuenta.id]">Modificar</button>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div class="pagination-container">
+      <button class="btn btn-secondary" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
+      <span class="page-indicator">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+      <button class="btn btn-secondary" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage + 1 >= totalPages">Siguiente</button>
+    </div>
+
+  } @else {
+    <div class="no-accounts">
+      <p>No hay cuentas disponibles.</p>
+    </div>
+  }
+</div>
