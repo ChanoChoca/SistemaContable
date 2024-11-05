@@ -28,6 +28,7 @@ export class LibroMayorComponent implements OnInit {
   cuentas: Cuenta[] = [];
   filtroForm: FormGroup;
   saldoAcumulativo: number[] = [];
+  nombreCuentaSeleccionada: string = '';
 
   constructor(
     private cuentaService: CuentaService,
@@ -61,6 +62,10 @@ export class LibroMayorComponent implements OnInit {
       return;
     }
 
+    // Encuentra el nombre de la cuenta seleccionada
+    const cuentaSeleccionada = this.cuentas.find(cuenta => cuenta.id === parseInt(cuentaId, 10));
+    this.nombreCuentaSeleccionada = cuentaSeleccionada ? cuentaSeleccionada.nombre : 'Cuenta Desconocida';
+
     this.reportesService.getLibroMayor(cuentaId, fechaInicio, fechaFin)
       .subscribe((data: MovimientoContable[]) => {
         this.movimientos = data;
@@ -71,17 +76,25 @@ export class LibroMayorComponent implements OnInit {
 
   }
 
-  // Método para calcular el saldo acumulativo de los movimientos
   calcularSaldoAcumulativo(): void {
-    let saldo = 0;
-    this.saldoAcumulativo = this.movimientos.map(movimiento => {
+    let saldo = this.obtenerSaldoInicial(); // Método para obtener el saldo inicial de la cuenta
+    this.saldoAcumulativo = [saldo]; // Incluir saldo inicial como el primer elemento
+
+    // Calcular saldo acumulativo para cada movimiento
+    this.movimientos.forEach(movimiento => {
       if (movimiento.esDebito) {
         saldo += movimiento.monto;
       } else {
         saldo -= movimiento.monto;
       }
-      return saldo; // Retorna el saldo después de cada movimiento
+      this.saldoAcumulativo.push(saldo); // Añadir saldo después de cada movimiento
     });
+  }
+
+  // Método para obtener el saldo inicial de la cuenta seleccionada
+  obtenerSaldoInicial(): number {
+    const cuentaSeleccionada = this.cuentas.find(cuenta => cuenta.id === parseInt(this.filtroForm.value.cuentaId, 10));
+    return cuentaSeleccionada ? cuentaSeleccionada.saldo : 0;
   }
 
   onSearch(): void {
@@ -96,33 +109,43 @@ export class LibroMayorComponent implements OnInit {
 
   imprimirLibroMayor(): void {
     const doc = new jsPDF();
-
-    // Agregar un título al documento
     doc.setFontSize(16);
-    doc.text('Libro Mayor', 14, 22);
+    doc.text('Libro Mayor', 14, 20);
 
-    // Crear el encabezado de la tabla
-    const columns = ['Fecha', 'Operación', 'Debe', 'Haber', 'Saldo', 'Cuenta'];
+    const { fechaInicio, fechaFin } = this.filtroForm.value;
+    const fechaInicioTexto = fechaInicio ? new Date(fechaInicio).toLocaleDateString() : 'N/A';
+    const fechaFinTexto = fechaFin ? new Date(fechaFin).toLocaleDateString() : 'N/A';
 
-    // Preparar los datos de la tabla
-    const rows = this.movimientos.map((movimiento, index) => {
-      const fecha = movimiento.asiento.fecha ? new Date(movimiento.asiento.fecha).toLocaleDateString() : '-----';
+    doc.setFontSize(12);
+    doc.text(`Cuenta: ${this.nombreCuentaSeleccionada} | Periodo: ${fechaInicioTexto} - ${fechaFinTexto}`, 14, 35);
+
+    const columns = ['Fecha', 'Operación', 'Debe', 'Haber', 'Saldo'];
+    const saldoInicial = this.obtenerSaldoInicial();
+    const rows = [];
+
+    // Agregar fila de saldo inicial
+    rows.push(['', 'Saldo inicial', '', '', saldoInicial]);
+
+    this.movimientos.forEach((movimiento, index) => {
+      const fecha = movimiento.asiento.fecha ? new Date(movimiento.asiento.fecha).toLocaleDateString() : '';
       const descripcion = movimiento.descripcion;
-      const debe = movimiento.esDebito ? movimiento.monto : 0;
-      const haber = movimiento.esDebito ? 0 : movimiento.monto;
-      const saldo = this.saldoAcumulativo[index];
-      const cuenta = movimiento.asiento.usuarioEmail || '-----' ;
+      const debe = movimiento.esDebito ? movimiento.monto : '';
+      const haber = movimiento.esDebito ? '' : movimiento.monto;
+      const saldo = this.saldoAcumulativo[index + 1]; // Siguiente saldo después del movimiento
 
-      return [fecha, descripcion, debe, haber, saldo, cuenta];
+      rows.push([fecha, descripcion, debe, haber, saldo]);
     });
 
-    // Usar autotable para agregar la tabla al PDF
+    // Agregar fila de saldo final
+    const saldoFinal = this.saldoAcumulativo[this.saldoAcumulativo.length - 1];
+    rows.push(['', 'Saldo final', '', '', saldoFinal]);
+
     autoTable(doc, {
-      head: [columns], // Usar las columnas como encabezado
-      body: rows, // Usar los datos de la tabla
-      startY: 30, // Posición Y donde se comenzará la tabla
+      head: [columns],
+      body: rows,
+      startY: 45,
       theme: 'grid',
-      headStyles: { fillColor: [22, 160, 133] }, // Color de fondo del encabezado
+      headStyles: { fillColor: [22, 160, 133] },
       styles: { cellPadding: 3, fontSize: 10 },
       margin: { top: 10 },
     });

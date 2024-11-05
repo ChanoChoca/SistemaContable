@@ -1,7 +1,7 @@
 <div class="cuenta-list-container">
   <h2>Lista de Cuentas</h2>
 
-  @if (hasRoleAdmin()) {
+  @if (authService.hasRoleAdmin()) {
     <!--
     El plan de cuentas podrá ser visualizado por cualquier usuario, pero solo el administrador
 podrá agregar y eliminar nuevas cuentas y modificar algunos atributos de una cuenta. Se debe
@@ -28,7 +28,7 @@ posible modificación.
       <tr>
         <th>ID</th>
         <th>Nombre</th>
-        @if (hasRoleAdmin()) {
+        @if (authService.hasRoleAdmin()) {
           <th>Acciones</th>
         }
       </tr>
@@ -38,7 +38,7 @@ posible modificación.
           <tr>
             <td>{{ cuenta.id }}</td>
             <td>{{ cuenta.nombre }}</td>
-            @if (hasRoleAdmin()) {
+            @if (authService.hasRoleAdmin()) {
               <td>
                 <button class="delete-button" (click)="deleteCuenta(cuenta)">Eliminar</button>
                 <button class="btn btn-secondary" [routerLink]="['/cuenta/edit', cuenta.id]">Modificar</button>

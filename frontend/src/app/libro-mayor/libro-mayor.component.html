@@ -24,6 +24,10 @@
     <button type="button" class="btn btn-secondary" (click)="clearFilters()">Limpiar</button>
   </form>
 
+  @if (nombreCuentaSeleccionada) {
+    <p>Cuenta seleccionada: {{ nombreCuentaSeleccionada }}</p>
+  }
+
   <!-- Tabla de asientos -->
   @if (movimientos.length > 0) {
     <div>
@@ -35,10 +39,17 @@
           <th>Debe</th>
           <th>Haber</th>
           <th>Saldo</th>
-          <th>Cuenta</th>
+<!--          <th>Cuenta</th>-->
         </tr>
         </thead>
         <tbody>
+        <tr>
+          <td></td>
+          <td>Saldo inicial</td>
+          <td></td>
+          <td></td>
+          <td>{{ saldoAcumulativo[0] }}</td>
+        </tr>
         @for (movimiento of movimientos; track movimiento; let i = $index) {
           <tr>
             <td>{{ movimiento.asiento.fecha | date: 'dd/MM/yyyy' }}</td>
@@ -52,10 +63,17 @@
               <td>{{movimiento.monto}}</td>
             }
 
-            <td>{{ saldoAcumulativo[i] }}</td>
-            <td>{{movimiento.asiento.usuarioEmail}}</td>
+            <td>{{ saldoAcumulativo[i + 1] }}</td>
+<!--            <td>{{movimiento.asiento.usuarioEmail}}</td>-->
           </tr>
         }
+        <tr>
+          <td></td>
+          <td>Saldo final</td>
+          <td></td>
+          <td></td>
+          <td>{{ saldoAcumulativo[saldoAcumulativo.length - 1] }}</td>
+        </tr>
         </tbody>
       </table>
 

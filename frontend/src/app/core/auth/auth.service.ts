@@ -106,4 +106,16 @@ export class AuthService {
     }
     return this.notConnected;
   }
+
+  getUserAuthority(): string[] {
+    const user = this.fetchUser$().value;
+    if (user && user.email !== this.notConnected) {
+      return user.authorities || [];
+    }
+    return [];
+  }
+
+  hasRoleAdmin(): boolean {
+    return this.getUserAuthority().includes('ROL_ADMIN');
+  }
 }

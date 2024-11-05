@@ -31,6 +31,7 @@ public class CuentaController {
         Cuenta savedCuenta = new Cuenta();
         savedCuenta.setNombre(newCuentaDTO.getNombre());
         savedCuenta.setCodigo(newCuentaDTO.getCodigo());
+        savedCuenta.setSaldo(newCuentaDTO.getSaldo());
         savedCuenta.setCuentaPadre(newCuentaDTO.getCuentaPadre());
         savedCuenta.setSubCuentas(newCuentaDTO.getSubCuentas());
         savedCuenta.setActiva(newCuentaDTO.isActiva());

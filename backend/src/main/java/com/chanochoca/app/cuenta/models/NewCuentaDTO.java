@@ -2,6 +2,7 @@ package com.chanochoca.app.cuenta.models;
 
 import com.chanochoca.app.cuenta.models.entity.Cuenta;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,8 @@ public class NewCuentaDTO {
     private String nombre;
 
     private String codigo;
+
+    private BigDecimal saldo;
 
     private Cuenta cuentaPadre;
 
@@ -36,6 +39,14 @@ public class NewCuentaDTO {
 
     public void setCodigo(String codigo) {
         this.codigo = codigo;
+    }
+
+    public BigDecimal getSaldo() {
+        return saldo;
+    }
+
+    public void setSaldo(BigDecimal saldo) {
+        this.saldo = saldo;
     }
 
     public Cuenta getCuentaPadre() {

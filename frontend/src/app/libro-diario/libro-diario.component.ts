@@ -80,7 +80,14 @@ export class LibroDiarioComponent implements OnInit {
 
         // Agregar un título al documento
         doc.setFontSize(16);
-        doc.text('Libro Diario', 14, 22);
+        doc.text('Libro Diario', 14, 20);
+
+        const fechaInicioTexto = fechaInicio ? new Date(fechaInicio).toLocaleDateString() : 'N/A';
+        const fechaFinTexto = fechaFin ? new Date(fechaFin).toLocaleDateString() : 'N/A';
+
+        // Imprimir la cuenta y el periodo en una sola línea
+        doc.setFontSize(12);
+        doc.text(`Periodo: ${fechaInicioTexto} - ${fechaFinTexto}`, 14, 35);
 
         // Crear el encabezado de la tabla
         const columns = ['ID', 'Fecha', 'Movimientos', 'Debe', 'Haber'];
@@ -103,7 +110,7 @@ export class LibroDiarioComponent implements OnInit {
         autoTable(doc, {
           head: [columns],
           body: rows,
-          startY: 30,
+          startY: 45,
           theme: 'grid',
           headStyles: { fillColor: [22, 160, 133] },
           styles: { cellPadding: 3, fontSize: 10 },

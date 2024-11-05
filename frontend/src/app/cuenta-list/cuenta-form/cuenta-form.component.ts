@@ -14,7 +14,7 @@ import {FormsModule} from "@angular/forms";
   styleUrl: './cuenta-form.component.css'
 })
 export class CuentaFormComponent implements OnInit {
-  cuenta: Cuenta = { nombre: '', codigo: '', cuentaPadre: null, subCuentas: undefined, activa: true, eliminada: false}
+  cuenta: Cuenta = { nombre: '', codigo: '', saldo: 0, cuentaPadre: null, subCuentas: undefined, activa: true, eliminada: false}
   cuentas: Cuenta[] = [];
   isEditMode = false;
   constructor(
@@ -42,9 +42,9 @@ export class CuentaFormComponent implements OnInit {
 
   // Método para cargar todas las cuentas disponibles
   cargarCuentas(): void {
-    // this.cuentaService.getAllCuentas().subscribe((cuentas: Cuenta[]) => {
-    //   this.cuentas = cuentas;
-    // });
+    this.cuentaService.getCuentas().subscribe((cuentas: Cuenta[]) => {
+      this.cuentas = cuentas;
+    });
   }
 
   onSubmit(): void {

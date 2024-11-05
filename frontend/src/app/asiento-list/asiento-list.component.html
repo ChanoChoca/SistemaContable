@@ -1,7 +1,7 @@
 <div class="asiento-list-container">
   <h2>Lista de Asientos Contables</h2>
 
-  @if (hasRoleAdmin()) {
+  @if (authService.hasRoleAdmin()) {
     <div class="boton">
       <button class="btn btn-secondary btn-padding" [routerLink]="['/asiento/new']">Crear Asiento Contable</button>
     </div>
@@ -15,7 +15,7 @@
         <th>ID</th>
         <th>Fecha</th>
         <th>Usuario</th>
-        @if (hasRoleAdmin()) {
+        @if (authService.hasRoleAdmin()) {
           <th>Acciones</th>
         }
       </tr>
@@ -26,7 +26,7 @@
             <td>{{ asiento.id }}</td>
             <td>{{ asiento.fecha | date: 'dd/MM/yyyy' }}</td>
             <td>{{ asiento.usuarioEmail }}</td>
-            @if (hasRoleAdmin()) {
+            @if (authService.hasRoleAdmin()) {
               <td>
                 <button class="delete-button" (click)="deleteAsiento(asiento)">Eliminar</button>
                 <button class="btn btn-secondary" [routerLink]="['/asiento/edit', asiento.id]">Modificar</button>

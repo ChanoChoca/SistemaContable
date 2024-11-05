@@ -2,6 +2,7 @@ package com.chanochoca.app.cuenta.models.entity;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,9 @@ public class Cuenta {
 
     @Column(nullable = false)
     private String codigo;
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal saldo;
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
@@ -57,6 +61,14 @@ public class Cuenta {
 
     public void setCodigo(String codigo) {
         this.codigo = codigo;
+    }
+
+    public BigDecimal getSaldo() {
+        return saldo;
+    }
+
+    public void setSaldo(BigDecimal saldo) {
+        this.saldo = saldo;
     }
 
     public Cuenta getCuentaPadre() {
