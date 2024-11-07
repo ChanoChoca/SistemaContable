@@ -42,9 +42,23 @@ export class CuentaFormComponent implements OnInit {
 
   // Método para cargar todas las cuentas disponibles
   cargarCuentas(): void {
-    this.cuentaService.getCuentas().subscribe((cuentas: Cuenta[]) => {
-      this.cuentas = cuentas;
+    this.cuentaService.getCuentas().subscribe(cuentas => {
+      this.cuentas = this.flattenCuentas(cuentas); // Aplana la estructura de cuentas con subcuentas
     });
+  }
+
+  // Función recursiva para aplanar la estructura de cuentas y subcuentas
+  flattenCuentas(cuentas: Cuenta[]): Cuenta[] {
+    let result: Cuenta[] = [];
+
+    cuentas.forEach(cuenta => {
+      result.push(cuenta); // Agrega la cuenta actual
+      if (cuenta.subCuentas && cuenta.subCuentas.length > 0) {
+        result = result.concat(this.flattenCuentas(cuenta.subCuentas)); // Llama recursivamente y concatena subcuentas
+      }
+    });
+
+    return result;
   }
 
   onSubmit(): void {

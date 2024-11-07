@@ -5,6 +5,7 @@ import {DatePipe} from "@angular/common";
 import {RouterLink} from "@angular/router";
 import {AuthService} from "../core/auth/auth.service";
 import {Page} from "../models/page.model";
+import {AsientoContableGet} from "../models/asiento.model";
 // import { ToastrService } from 'ngx-toastr'; // Para notificaciones, opcional
 
 @Component({
@@ -18,7 +19,7 @@ import {Page} from "../models/page.model";
   styleUrl: './asiento-list.component.css'
 })
 export class AsientoListComponent implements OnInit {
-  asientos: AsientoContable[] = [];
+  asientos: AsientoContableGet[] = [];  // Cambiado a AsientoContableGet
   currentPage: number = 0;
   pageSize: number = 3;
   totalPages: number = 0;
@@ -36,7 +37,7 @@ export class AsientoListComponent implements OnInit {
   // Cargar todos los asientos
   getAsientos(): void {
     this.asientoService.getAllAsientos(this.currentPage, this.pageSize)
-      .subscribe((data: Page<AsientoContable>) => {
+      .subscribe((data: Page<AsientoContableGet>) => {  // Cambiado a AsientoContableGet
         this.asientos = data.content;
         this.totalPages = data.page.totalPages;
       });
@@ -48,7 +49,7 @@ export class AsientoListComponent implements OnInit {
   }
 
   // Eliminar asiento por ID
-  deleteAsiento(asiento: AsientoContable): void {
+  deleteAsiento(asiento: AsientoContableGet): void {  // Cambiado a AsientoContableGet
     if (confirm("¿Estás seguro de que deseas eliminar este asiento?")) {
       this.asientoService.deleteAsiento(asiento.id!);
     }

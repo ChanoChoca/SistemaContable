@@ -1,6 +1,9 @@
 package com.chanochoca.app.cuenta.models.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
+import org.springframework.context.annotation.Lazy;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -25,6 +28,7 @@ public class Cuenta {
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
+    @JsonBackReference
     private Cuenta cuentaPadre;  // Para la estructura en árbol
 
     @OneToMany(mappedBy = "cuentaPadre", fetch = FetchType.EAGER)
@@ -75,6 +79,7 @@ public class Cuenta {
         return cuentaPadre;
     }
 
+    @PostConstruct
     public void setCuentaPadre(Cuenta cuentaPadre) {
         this.cuentaPadre = cuentaPadre;
     }
@@ -85,6 +90,10 @@ public class Cuenta {
 
     public void setSubCuentas(List<Cuenta> subCuentas) {
         this.subCuentas = subCuentas;
+    }
+
+    public void addSubCuenta(Cuenta subCuenta) {
+        this.getSubCuentas().add(subCuenta);
     }
 
     public boolean isActiva() {
@@ -101,5 +110,9 @@ public class Cuenta {
 
     public void setEliminada(boolean eliminada) {
         this.eliminada = eliminada;
+    }
+
+    public void removeSubCuenta(Cuenta cuenta) {
+        this.getSubCuentas().remove(cuenta);
     }
 }

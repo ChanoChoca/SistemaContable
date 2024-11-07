@@ -1,5 +1,7 @@
 package com.chanochoca.app.contable.controller;
 
+import com.chanochoca.app.contable.models.AsientoContableDTO;
+import com.chanochoca.app.contable.models.AsientoLibroDiarioDTO;
 import com.chanochoca.app.contable.models.entity.AsientoContable;
 import com.chanochoca.app.contable.models.entity.MovimientoContable;
 import com.chanochoca.app.contable.service.AsientoContableService;
@@ -47,6 +49,35 @@ public class AsientoContableController {
         return new ResponseEntity<>(savedCuenta, HttpStatus.CREATED);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<AsientoContable> updateAsiento(
+            @PathVariable Long id,
+            @RequestBody AsientoContable asientoContable) {
+
+        Optional<AsientoContable> asientoExistenteOpt = asientoContableService.findById(id);
+        if (!asientoExistenteOpt.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        AsientoContable asientoExistente = asientoExistenteOpt.get();
+        asientoExistente.setFecha(asientoContable.getFecha());
+        asientoExistente.setUsuarioEmail(asientoContable.getUsuarioEmail());
+
+        List<MovimientoContable> nuevosMovimientos = asientoContable.getMovimientos().stream()
+                .map(dto -> {
+                    MovimientoContable movimiento = new MovimientoContable();
+                    movimiento.setDescripcion(dto.getDescripcion());
+                    movimiento.setCuenta(dto.getCuenta());
+                    movimiento.setMonto(dto.getMonto());
+                    movimiento.setEsDebito(dto.isEsDebito());
+                    movimiento.setAsiento(asientoExistente);
+                    return movimiento;
+                }).collect(Collectors.toList());
+
+        AsientoContable actualizado = asientoContableService.updateAsientoContable(asientoExistente, nuevosMovimientos);
+        return ResponseEntity.ok(actualizado);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<AsientoContable> getAsientoById(@PathVariable Long id) {
         Optional<AsientoContable> cuenta = asientoContableService.findById(id);
@@ -55,19 +86,19 @@ public class AsientoContableController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<AsientoContable>> getAllAsientos(@RequestParam(defaultValue = "0") int page,
-                                                               @RequestParam(defaultValue = "1") int size) {
-        Page<AsientoContable> asientosContables = asientoContableService.findAll(page, size);
-
+    public ResponseEntity<Page<AsientoContableDTO>> getAllAsientos(@RequestParam(defaultValue = "0") int page,
+                                                                   @RequestParam(defaultValue = "1") int size) {
+        Page<AsientoContableDTO> asientosContables = asientoContableService.findAll(page, size);
         return ResponseEntity.ok(asientosContables);
     }
 
+
     @GetMapping("/libro-diario")
-    public ResponseEntity<Page<AsientoContable>> libroDiario(@RequestParam(defaultValue = "0") int page,
-                                                             @RequestParam(defaultValue = "1") int size,
-                                                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
-                                                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
-        Page<AsientoContable> asientosContables = asientoContableService.libroDiario(page, size, fechaInicio, fechaFin);
+    public ResponseEntity<Page<AsientoLibroDiarioDTO>> libroDiario(@RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "1") int size,
+                                                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+                                                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
+        Page<AsientoLibroDiarioDTO> asientosContables = asientoContableService.libroDiario(page, size, fechaInicio, fechaFin);
         return ResponseEntity.ok(asientosContables);
     }
 

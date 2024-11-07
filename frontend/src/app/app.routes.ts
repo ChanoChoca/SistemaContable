@@ -52,5 +52,10 @@ export const routes: Routes = [
   {
     path: 'libro-mayor',
     component: LibroMayorComponent
+  },
+  {
+    path: '**',
+    redirectTo: '',
+    pathMatch: 'full'
   }
 ];

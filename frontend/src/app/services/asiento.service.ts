@@ -5,6 +5,7 @@ import { AsientoContable } from '../models/asiento.model';
 import {environment} from "../../environments/environment";
 import {Page} from "../models/page.model";
 import {State} from "../core/model/state.model";
+import {AsientoContableGet} from "../models/asiento.model";
 
 @Injectable({
   providedIn: 'root'
@@ -30,12 +31,12 @@ export class AsientoService {
   updateAsientoSig = computed(() => this.updateAsiento$());
 
   // Obtener todos los asientos
-  getAllAsientos(page: number = 0, size: number = 1): Observable<Page<AsientoContable>> {
+  getAllAsientos(page: number = 0, size: number = 1): Observable<Page<AsientoContableGet>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
 
-    return this.http.get<Page<AsientoContable>>(`${environment.API_URL}/asientos-contables`, {params});
+    return this.http.get<Page<AsientoContableGet>>(`${environment.API_URL}/asientos-contables`, {params});
   }
 
   // Obtener asiento por ID

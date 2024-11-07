@@ -64,4 +64,8 @@ public class AsientoContable extends AbstractAuditingEntity<Long> {
     public void addMovimiento(MovimientoContable movimiento) {
         this.movimientos.add(movimiento);
     }
+
+    public void removeMovimiento(MovimientoContable movimiento) {
+        this.movimientos.remove(movimiento);
+    }
 }

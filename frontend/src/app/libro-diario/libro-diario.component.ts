@@ -6,6 +6,7 @@ import {DatePipe} from "@angular/common";
 import {Page} from "../models/page.model";
 import {jsPDF} from "jspdf";
 import autoTable from "jspdf-autotable";
+import {AsientoContableLibroMayor} from "../models/asiento.model";
 
 // Fecha, movimiento, debe, haber, saldo
 // Puede haber más de un movimiento por fecha
@@ -21,7 +22,7 @@ import autoTable from "jspdf-autotable";
   styleUrl: './libro-diario.component.css'
 })
 export class LibroDiarioComponent implements OnInit {
-  asientos: AsientoContable[] = [];
+  asientos: AsientoContableLibroMayor[] = [];
   fechaInicio: string = '2000-01-01';
   fechaFin: string = '2024-11-01';
   currentPage: number = 0;
@@ -48,7 +49,7 @@ export class LibroDiarioComponent implements OnInit {
   buscarAsientos(): void {
     const { fechaInicio, fechaFin } = this.filtroForm.value;
     this.reportesService.getLibroDiario(this.currentPage, this.pageSize, fechaInicio, fechaFin)
-      .subscribe((data: Page<AsientoContable>) => {
+      .subscribe((data: Page<AsientoContableLibroMayor>) => {
         this.asientos = data.content;
         this.totalPages = data.page.totalPages;
       });

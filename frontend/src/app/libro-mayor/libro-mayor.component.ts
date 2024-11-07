@@ -2,11 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { ReportesService } from '../services/reportes.service';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {DatePipe} from "@angular/common";
-import {MovimientoContable} from "../models/movimiento.model";
+import {MovimientoContable, MovimientoContableLibroMayor} from "../models/movimiento.model";
 import {Cuenta} from "../models/cuenta.model";
 import {CuentaService} from "../services/cuenta.service";
 import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable"; // Asegúrate de importar esto para generar tablas
+import autoTable from "jspdf-autotable";
 
 // Fecha (movimiento), operacion (movimiento), debe, haber
 // Se tendrá un saldo inicial y un saldo final
@@ -24,7 +24,7 @@ import autoTable from "jspdf-autotable"; // Asegúrate de importar esto para gen
   styleUrl: './libro-mayor.component.css'
 })
 export class LibroMayorComponent implements OnInit {
-  movimientos: MovimientoContable[] = [];
+  movimientos: MovimientoContableLibroMayor[] = []; // Cambia el tipo de MovimientoContable a AsientoContableLibroMayor
   cuentas: Cuenta[] = [];
   filtroForm: FormGroup;
   saldoAcumulativo: number[] = [];
@@ -36,24 +36,35 @@ export class LibroMayorComponent implements OnInit {
     private fb: FormBuilder
   ) {
     this.filtroForm = this.fb.group({
-      cuentaId: [''], // Add cuentaId to the form
+      cuentaId: [''],
       fechaInicio: [''],
       fechaFin: ['']
     });
   }
 
   ngOnInit(): void {
-    this.cargarCuentas(); // Cargar las cuentas al iniciar
+    this.cargarCuentas();
   }
 
-  // Método para cargar las cuentas
   cargarCuentas(): void {
     this.cuentaService.getCuentas().subscribe(cuentas => {
-      this.cuentas = cuentas; // Ajusta según la estructura de respuesta de tu API
+      this.cuentas = this.flattenCuentas(cuentas);
     });
   }
 
-  // Buscar asientos contables para una cuenta específica entre dos fechas
+  flattenCuentas(cuentas: Cuenta[]): Cuenta[] {
+    let result: Cuenta[] = [];
+
+    cuentas.forEach(cuenta => {
+      result.push(cuenta);
+      if (cuenta.subCuentas && cuenta.subCuentas.length > 0) {
+        result = result.concat(this.flattenCuentas(cuenta.subCuentas));
+      }
+    });
+
+    return result;
+  }
+
   buscarMovimientos(): void {
     const { cuentaId, fechaInicio, fechaFin } = this.filtroForm.value;
 
@@ -62,36 +73,32 @@ export class LibroMayorComponent implements OnInit {
       return;
     }
 
-    // Encuentra el nombre de la cuenta seleccionada
     const cuentaSeleccionada = this.cuentas.find(cuenta => cuenta.id === parseInt(cuentaId, 10));
     this.nombreCuentaSeleccionada = cuentaSeleccionada ? cuentaSeleccionada.nombre : 'Cuenta Desconocida';
 
     this.reportesService.getLibroMayor(cuentaId, fechaInicio, fechaFin)
-      .subscribe((data: MovimientoContable[]) => {
+      .subscribe((data: MovimientoContableLibroMayor[]) => { // Cambia MovimientoContable a AsientoContableLibroMayor
         this.movimientos = data;
         this.calcularSaldoAcumulativo();
       }, error => {
         console.error('Error fetching movements:', error);
       });
-
   }
 
   calcularSaldoAcumulativo(): void {
-    let saldo = this.obtenerSaldoInicial(); // Método para obtener el saldo inicial de la cuenta
-    this.saldoAcumulativo = [saldo]; // Incluir saldo inicial como el primer elemento
+    let saldo = this.obtenerSaldoInicial();
+    this.saldoAcumulativo = [saldo];
 
-    // Calcular saldo acumulativo para cada movimiento
     this.movimientos.forEach(movimiento => {
       if (movimiento.esDebito) {
         saldo += movimiento.monto;
       } else {
         saldo -= movimiento.monto;
       }
-      this.saldoAcumulativo.push(saldo); // Añadir saldo después de cada movimiento
+      this.saldoAcumulativo.push(saldo);
     });
   }
 
-  // Método para obtener el saldo inicial de la cuenta seleccionada
   obtenerSaldoInicial(): number {
     const cuentaSeleccionada = this.cuentas.find(cuenta => cuenta.id === parseInt(this.filtroForm.value.cuentaId, 10));
     return cuentaSeleccionada ? cuentaSeleccionada.saldo : 0;
@@ -127,7 +134,7 @@ export class LibroMayorComponent implements OnInit {
     rows.push(['', 'Saldo inicial', '', '', saldoInicial]);
 
     this.movimientos.forEach((movimiento, index) => {
-      const fecha = movimiento.asiento.fecha ? new Date(movimiento.asiento.fecha).toLocaleDateString() : '';
+      const fecha = movimiento.fecha ? new Date(movimiento.fecha).toLocaleDateString() : '';
       const descripcion = movimiento.descripcion;
       const debe = movimiento.esDebito ? movimiento.monto : '';
       const haber = movimiento.esDebito ? '' : movimiento.monto;

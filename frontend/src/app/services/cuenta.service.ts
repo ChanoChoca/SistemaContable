@@ -37,6 +37,15 @@ export class CuentaService {
     return this.http.get<Page<Cuenta>>(`${environment.API_URL}/cuentas`, {params});
   }
 
+  getAllCuentasTree(page: number = 0, size: number = 1, nombre: string = ''): Observable<Page<Cuenta>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('nombre', nombre.toString())
+
+    return this.http.get<Page<Cuenta>>(`${environment.API_URL}/cuentas/tree`, {params});
+  }
+
   getCuentas(): Observable<Cuenta[]> {
     return this.http.get<Cuenta[]>(`${environment.API_URL}/cuentas/cuentas-sin-paginado`);
   }

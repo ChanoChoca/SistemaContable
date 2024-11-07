@@ -1,0 +1,21 @@
+@if (cuenta) {
+  <tr>
+    <td [style.paddingLeft.px]="level * 20">{{ cuenta.id }}</td> <!-- Indentación dinámica -->
+    <td>{{ cuenta.nombre }}</td>
+    <td>{{ cuenta.codigo }}</td>
+    <td>{{ cuenta.saldo }}</td>
+    @if (authService.hasRoleAdmin()) {
+      <td>
+        <button class="delete-button" (click)="deleteCuenta(cuenta)">Eliminar</button>
+        <button class="btn btn-secondary" [routerLink]="['/cuenta/edit', cuenta.id]">Modificar</button>
+      </td>
+    }
+  </tr>
+}
+
+<!-- Recursividad: Mostrar subcuentas si existen -->
+@for (subCuenta of cuenta?.subCuentas; track cuenta) {
+  <ng-container>
+    <app-cuenta-item [cuenta]="subCuenta" [level]="level + 1"></app-cuenta-item>
+  </ng-container>
+}

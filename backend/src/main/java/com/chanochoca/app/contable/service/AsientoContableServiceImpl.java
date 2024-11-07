@@ -1,5 +1,8 @@
 package com.chanochoca.app.contable.service;
 
+import com.chanochoca.app.contable.models.AsientoContableDTO;
+import com.chanochoca.app.contable.models.AsientoLibroDiarioDTO;
+import com.chanochoca.app.contable.models.MovimientoLibroDiarioDTO;
 import com.chanochoca.app.contable.models.entity.AsientoContable;
 import com.chanochoca.app.contable.models.entity.MovimientoContable;
 import com.chanochoca.app.contable.repository.AsientoContableRepository;
@@ -13,6 +16,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AsientoContableServiceImpl implements AsientoContableService {
@@ -31,7 +35,7 @@ public class AsientoContableServiceImpl implements AsientoContableService {
             throw new IllegalArgumentException("El asiento contable debe tener al menos un movimiento contable.");
         }
 
-        for (MovimientoContable movimiento: movimientos) {
+        for (MovimientoContable movimiento : movimientos) {
             movimiento.setAsiento(asiento);
             asiento.addMovimiento(movimiento);
         }
@@ -74,15 +78,36 @@ public class AsientoContableServiceImpl implements AsientoContableService {
     }
 
     @Override
-    public Page<AsientoContable> findAll(int page, int size) {
+    public Page<AsientoContableDTO> findAll(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return asientoContableRepository.findAll(pageable);
+        Page<AsientoContable> asientosContables = asientoContableRepository.findAll(pageable);
+
+        // Mapear los AsientosContables a DTOs optimizados
+        Page<AsientoContableDTO> asientosDTO = asientosContables.map(asiento -> new AsientoContableDTO(
+                asiento.getId(),
+                asiento.getFecha(),
+                asiento.getUsuarioEmail()
+        ));
+
+        return asientosDTO;
     }
 
     @Override
-    public Page<AsientoContable> libroDiario(int page, int size, LocalDate fechaInicial, LocalDate fechaFinal) {
+    public Page<AsientoLibroDiarioDTO> libroDiario(int page, int size, LocalDate fechaInicial, LocalDate fechaFinal) {
         Pageable pageable = PageRequest.of(page, size);
-        return asientoContableRepository.findByFechaBetween(fechaInicial, fechaFinal, pageable);
+        Page<AsientoContable> asientos = asientoContableRepository.findByFechaBetween(fechaInicial, fechaFinal, pageable);
+
+        return asientos.map(asiento -> {
+            List<MovimientoLibroDiarioDTO> movimientosDTO = asiento.getMovimientos().stream()
+                    .map(movimiento -> new MovimientoLibroDiarioDTO(
+                            movimiento.getDescripcion(),
+                            movimiento.isEsDebito(),
+                            movimiento.getMonto()
+                    ))
+                    .collect(Collectors.toList());
+
+            return new AsientoLibroDiarioDTO(asiento.getId(), asiento.getFecha(), movimientosDTO);
+        });
     }
 
     @Override

@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+
 @Entity
 public class MovimientoContable {
 
@@ -26,7 +28,7 @@ public class MovimientoContable {
     private AsientoContable asiento;
 
     @Column(nullable = false)
-    private double monto;
+    private BigDecimal monto;
 
     @Column(nullable = false)
     private boolean esDebito;  // Si es un débito o crédito
@@ -66,11 +68,11 @@ public class MovimientoContable {
         this.asiento = asiento;
     }
 
-    public double getMonto() {
+    public BigDecimal getMonto() {
         return monto;
     }
 
-    public void setMonto(double monto) {
+    public void setMonto(BigDecimal monto) {
         this.monto = monto;
     }
 

@@ -5,6 +5,7 @@ import {FormsModule} from "@angular/forms";
 import {AuthService} from "../core/auth/auth.service";
 import {Page} from "../models/page.model";
 import {RouterLink} from "@angular/router";
+import {CuentaItemComponent} from "./cuenta-item/cuenta-item.component";
 // import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -12,7 +13,8 @@ import {RouterLink} from "@angular/router";
   standalone: true,
   imports: [
     FormsModule,
-    RouterLink
+    RouterLink,
+    CuentaItemComponent
   ],
   templateUrl: './cuenta-list.component.html',
   styleUrl: './cuenta-list.component.css'
@@ -34,13 +36,12 @@ export class CuentaListComponent implements OnInit {
     this.getCuentas();
   }
 
-  // Cargar todas las cuentas
   getCuentas(): void {
-    this.cuentaService.getAllCuentas(this.currentPage, this.pageSize, this.nombre)
+    this.cuentaService.getAllCuentasTree(this.currentPage, this.pageSize, this.nombre)
       .subscribe((data: Page<Cuenta>) => {
         this.cuentas = data.content;
         this.totalPages = data.page.totalPages;
-      })
+      });
   }
 
   onSearch(): void {
@@ -58,7 +59,6 @@ export class CuentaListComponent implements OnInit {
     this.onSearch();
   }
 
-  // Eliminar cuenta por ID
   deleteCuenta(cuenta: Cuenta): void {
     this.cuentaService.deleteCuenta(cuenta.id!);
   }

@@ -1,5 +1,6 @@
 package com.chanochoca.app.contable.service;
 
+import com.chanochoca.app.contable.models.MovimientoLibroMayorDTO;
 import com.chanochoca.app.contable.models.entity.MovimientoContable;
 
 import java.time.LocalDate;
@@ -16,5 +17,5 @@ public interface MovimientoContableService {
 
     void deleteById(Long id);
 
-    List<MovimientoContable> libroMayor(Long cuentaId, LocalDate fechaInicio, LocalDate fechaFin);
+    List<MovimientoLibroMayorDTO> libroMayor(Long cuentaId, LocalDate fechaInicio, LocalDate fechaFin);
 }

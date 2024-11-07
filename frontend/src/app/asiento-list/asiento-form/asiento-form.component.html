@@ -41,7 +41,7 @@
       <ul>
         @for (movimiento of asiento.movimientos; let i = $index; track movimiento) {
           <li>
-            {{ movimiento.cuenta.nombre }} - {{ movimiento.monto }} - {{ movimiento.esDebito ? 'Débito' : 'Crédito' }}
+            {{ movimiento.descripcion }} - {{ movimiento.monto }} - {{ movimiento.esDebito ? 'Débito' : 'Crédito' }}
             <button type="button" (click)="eliminarMovimiento(i)">Eliminar</button>
           </li>
         }

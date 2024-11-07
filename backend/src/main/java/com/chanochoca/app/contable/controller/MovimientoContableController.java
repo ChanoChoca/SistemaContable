@@ -1,6 +1,6 @@
 package com.chanochoca.app.contable.controller;
 
-import com.chanochoca.app.contable.models.NewMovimientoDTO;
+import com.chanochoca.app.contable.models.MovimientoLibroMayorDTO;
 import com.chanochoca.app.contable.models.entity.AsientoContable;
 import com.chanochoca.app.contable.models.entity.MovimientoContable;
 import com.chanochoca.app.contable.service.AsientoContableService;
@@ -28,17 +28,12 @@ public class MovimientoContableController {
     }
 
     @PostMapping
-    public ResponseEntity<MovimientoContable> createCuenta(@Valid @RequestBody NewMovimientoDTO newMovimientoDTO) {
+    public ResponseEntity<MovimientoContable> createMovimiento(@Valid @RequestBody MovimientoContable movimientoContable) {
 
-        MovimientoContable movimientoContable = new MovimientoContable();
-        movimientoContable.setCuenta(newMovimientoDTO.getCuenta());
-
-        AsientoContable asiento = asientoContableService.findById(newMovimientoDTO.getAsiento().getId())
+        AsientoContable asiento = asientoContableService.findById(movimientoContable.getAsiento().getId())
                 .orElseThrow(() -> new RuntimeException("Asiento no encontrado"));
 
         movimientoContable.setAsiento(asiento);
-        movimientoContable.setMonto(newMovimientoDTO.getMonto());
-        movimientoContable.setEsDebito(newMovimientoDTO.isEsDebito());
 
         MovimientoContable savedCuenta = movimientoContableService.save(movimientoContable);
         return new ResponseEntity<>(savedCuenta, HttpStatus.CREATED);
@@ -52,27 +47,21 @@ public class MovimientoContableController {
     }
 
     @GetMapping
-    public ResponseEntity<List<MovimientoContable>> getAllCuentas() {
+    public ResponseEntity<List<MovimientoContable>> getAllMovimientos() {
         List<MovimientoContable> cuentas = movimientoContableService.findAll();
         return new ResponseEntity<>(cuentas, HttpStatus.OK);
     }
 
     @GetMapping("/libro-mayor")
-    public ResponseEntity<List<MovimientoContable>> libroMayor(@RequestParam(required = false) Long cuentaId,
-                                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
-                                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
-        List<MovimientoContable> movimientosContables = movimientoContableService.libroMayor(cuentaId, fechaInicio, fechaFin);
-        movimientosContables.forEach(movimiento -> {
-            System.out.println("-----Por cada movimiento2-----");
-            System.out.println("Fecha " + movimiento.getAsiento().getFecha());
-            System.out.println("Email " + movimiento.getAsiento().getUsuarioEmail());
-            System.out.println("Cuenta " + movimiento.getCuenta().getNombre());
-        });
+    public ResponseEntity<List<MovimientoLibroMayorDTO>> libroMayor(@RequestParam(required = false) Long cuentaId,
+                                                                    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+                                                                    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
+        List<MovimientoLibroMayorDTO> movimientosContables = movimientoContableService.libroMayor(cuentaId, fechaInicio, fechaFin);
         return ResponseEntity.ok(movimientosContables);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCuenta(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteMovimiento(@PathVariable Long id) {
         movimientoContableService.deleteById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

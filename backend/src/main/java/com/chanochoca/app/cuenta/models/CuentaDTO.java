@@ -1,30 +1,19 @@
 package com.chanochoca.app.cuenta.models;
 
-import com.chanochoca.app.cuenta.models.entity.Cuenta;
-
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
-public class NewCuentaDTO {
-
+public class CuentaDTO {
     private Long id;
-
     private String nombre;
-
     private String codigo;
-
     private BigDecimal saldo;
-
-    private Cuenta cuentaPadre;
-
-    private List<Cuenta> subCuentas = new ArrayList<>();
-
     private boolean activa;
-
     private boolean eliminada;
+    private List<CuentaDTO> subCuentas;
 
-    public NewCuentaDTO() {
+    // Constructor, getters y setters...
+    public CuentaDTO() {
     }
 
     public Long getId() {
@@ -59,22 +48,6 @@ public class NewCuentaDTO {
         this.saldo = saldo;
     }
 
-    public Cuenta getCuentaPadre() {
-        return cuentaPadre;
-    }
-
-    public void setCuentaPadre(Cuenta cuentaPadre) {
-        this.cuentaPadre = cuentaPadre;
-    }
-
-    public List<Cuenta> getSubCuentas() {
-        return subCuentas;
-    }
-
-    public void setSubCuentas(List<Cuenta> subCuentas) {
-        this.subCuentas = subCuentas;
-    }
-
     public boolean isActiva() {
         return activa;
     }
@@ -89,5 +62,13 @@ public class NewCuentaDTO {
 
     public void setEliminada(boolean eliminada) {
         this.eliminada = eliminada;
+    }
+
+    public List<CuentaDTO> getSubCuentas() {
+        return subCuentas;
+    }
+
+    public void setSubCuentas(List<CuentaDTO> subCuentas) {
+        this.subCuentas = subCuentas;
     }
 }

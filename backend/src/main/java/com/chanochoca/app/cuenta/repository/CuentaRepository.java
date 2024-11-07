@@ -11,4 +11,8 @@ public interface CuentaRepository extends CrudRepository<Cuenta, Long> {
     List<Cuenta> findByNombre(String nombre);
 
     Page<Cuenta> findByNombreContaining(String nombre, Pageable pageable);
+
+    List<Cuenta> findByCuentaPadreIsNull();
+
+    Page<Cuenta> findByNombreContainingAndCuentaPadreIsNull(String nombre, Pageable pageable);
 }

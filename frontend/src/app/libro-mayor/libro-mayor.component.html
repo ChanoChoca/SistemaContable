@@ -52,7 +52,7 @@
         </tr>
         @for (movimiento of movimientos; track movimiento; let i = $index) {
           <tr>
-            <td>{{ movimiento.asiento.fecha | date: 'dd/MM/yyyy' }}</td>
+            <td>{{ movimiento.fecha | date: 'dd/MM/yyyy' }}</td>
             <td>{{movimiento.descripcion}}</td>
 
             @if (movimiento.esDebito) {
