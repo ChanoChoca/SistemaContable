@@ -1,6 +1,5 @@
 import {Component, inject, OnInit} from '@angular/core';
 import { AsientoService } from '../services/asiento.service';
-import { AsientoContable } from '../models/asiento.model';
 import {DatePipe} from "@angular/common";
 import {RouterLink} from "@angular/router";
 import {AuthService} from "../core/auth/auth.service";

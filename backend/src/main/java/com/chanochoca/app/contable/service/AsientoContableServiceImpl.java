@@ -37,31 +37,12 @@ public class AsientoContableServiceImpl implements AsientoContableService {
         }
 
         AsientoContable asientoExistente = asientoExistenteOpt.get();
-        asientoExistente.setFecha(asientoContable.getFecha());
-        asientoExistente.setUsuarioEmail(asientoContable.getUsuarioEmail());
+        updateAsientoDetails(asientoExistente, asientoContable);
+        List<MovimientoContable> nuevosMovimientos = createMovimientos(asientoContable, asientoExistente);
 
-        List<MovimientoContable> nuevosMovimientos = asientoContable.getMovimientos().stream()
-                .map(dto -> {
-                    MovimientoContable movimiento = new MovimientoContable();
-                    movimiento.setDescripcion(dto.getDescripcion());
-                    movimiento.setCuenta(dto.getCuenta());
-                    movimiento.setMonto(dto.getMonto());
-                    movimiento.setEsDebito(dto.isEsDebito());
-                    movimiento.setAsiento(asientoExistente);
-                    return movimiento;
-                }).collect(Collectors.toList());
+        clearExistingMovimientos(asientoExistente);
+        addNewMovimientos(asientoExistente, nuevosMovimientos);
 
-        // Limpiar los movimientos existentes del asiento
-        asientoExistente.getMovimientos().clear();
-        asientoContableRepository.save(asientoExistente); // Guarda para reflejar la limpieza en la base de datos
-
-        // Agregar los nuevos movimientos
-        for (MovimientoContable movimiento : nuevosMovimientos) {
-            movimiento.setAsiento(asientoExistente);
-            asientoExistente.getMovimientos().add(movimiento);
-        }
-
-        // Guardar el asiento con los nuevos movimientos
         return asientoContableRepository.save(asientoExistente);
     }
 
@@ -72,64 +53,39 @@ public class AsientoContableServiceImpl implements AsientoContableService {
         asiento.setFecha(asientoContable.getFecha());
         asiento.setUsuarioEmail(asientoContable.getUsuarioEmail());
 
-        List<MovimientoContable> movimientos = asientoContable.getMovimientos().stream()
-                .map(dto -> {
-                    MovimientoContable movimiento = new MovimientoContable();
-                    movimiento.setDescripcion(dto.getDescripcion());
-                    movimiento.setCuenta(dto.getCuenta());
-                    movimiento.setMonto(dto.getMonto());
-                    movimiento.setEsDebito(dto.isEsDebito());
-                    movimiento.setAsiento(asiento);
-                    return movimiento;
-                }).collect(Collectors.toList());
+        List<MovimientoContable> movimientos = createMovimientos(asientoContable, asiento);
 
         if (movimientos.isEmpty()) {
             throw new IllegalArgumentException("El asiento contable debe tener al menos un movimiento contable.");
         }
 
-        for (MovimientoContable movimiento : movimientos) {
-            asiento.addMovimiento(movimiento);
-        }
+        addNewMovimientos(asiento, movimientos);
 
         return asientoContableRepository.save(asiento);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<AsientoContable> findById(Long id) {
         return asientoContableRepository.findById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<AsientoContableDTO> findAll(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<AsientoContable> asientosContables = asientoContableRepository.findAll(pageable);
 
-        // Mapear los AsientosContables a DTOs optimizados
-        Page<AsientoContableDTO> asientosDTO = asientosContables.map(asiento -> new AsientoContableDTO(
-                asiento.getId(),
-                asiento.getFecha(),
-                asiento.getUsuarioEmail()
-        ));
-
-        return asientosDTO;
+        return asientosContables.map(this::convertToDTO);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<AsientoLibroDiarioDTO> libroDiario(int page, int size, LocalDate fechaInicial, LocalDate fechaFinal) {
         Pageable pageable = PageRequest.of(page, size);
         Page<AsientoContable> asientos = asientoContableRepository.findByFechaBetween(fechaInicial, fechaFinal, pageable);
 
-        return asientos.map(asiento -> {
-            List<MovimientoLibroDiarioDTO> movimientosDTO = asiento.getMovimientos().stream()
-                    .map(movimiento -> new MovimientoLibroDiarioDTO(
-                            movimiento.getDescripcion(),
-                            movimiento.isEsDebito(),
-                            movimiento.getMonto()
-                    ))
-                    .collect(Collectors.toList());
-
-            return new AsientoLibroDiarioDTO(asiento.getId(), asiento.getFecha(), movimientosDTO);
-        });
+        return asientos.map(this::convertToLibroDiarioDTO);
     }
 
     @Override
@@ -141,15 +97,58 @@ public class AsientoContableServiceImpl implements AsientoContableService {
         return asientosList;
     }
 
+    private void updateAsientoDetails(AsientoContable asientoExistente, AsientoContable asientoContable) {
+        asientoExistente.setFecha(asientoContable.getFecha());
+        asientoExistente.setUsuarioEmail(asientoContable.getUsuarioEmail());
+    }
+
+    private List<MovimientoContable> createMovimientos(AsientoContable asientoContable, AsientoContable asientoExistente) {
+        return asientoContable.getMovimientos().stream()
+                .map(dto -> {
+                    MovimientoContable movimiento = new MovimientoContable();
+                    movimiento.setDescripcion(dto.getDescripcion());
+                    movimiento.setCuenta(dto.getCuenta());
+                    movimiento.setMonto(dto.getMonto());
+                    movimiento.setEsDebito(dto.isEsDebito());
+                    movimiento.setAsiento(asientoExistente);
+                    return movimiento;
+                }).collect(Collectors.toList());
+    }
+
+    private void clearExistingMovimientos(AsientoContable asientoExistente) {
+        asientoExistente.getMovimientos().clear();
+        asientoContableRepository.save(asientoExistente);
+    }
+
+    private void addNewMovimientos(AsientoContable asientoExistente, List<MovimientoContable> nuevosMovimientos) {
+        for (MovimientoContable movimiento : nuevosMovimientos) {
+            movimiento.setAsiento(asientoExistente);
+            asientoExistente.getMovimientos().add(movimiento);
+        }
+    }
+
+    private AsientoContableDTO convertToDTO(AsientoContable asiento) {
+        return new AsientoContableDTO(
+                asiento.getId(),
+                asiento.getFecha(),
+                asiento.getUsuarioEmail()
+        );
+    }
+
+    private AsientoLibroDiarioDTO convertToLibroDiarioDTO(AsientoContable asiento) {
+        List<MovimientoLibroDiarioDTO> movimientosDTO = asiento.getMovimientos().stream()
+                .map(movimiento -> new MovimientoLibroDiarioDTO(
+                        movimiento.getDescripcion(),
+                        movimiento.isEsDebito(),
+                        movimiento.getMonto()
+                ))
+                .collect(Collectors.toList());
+
+        return new AsientoLibroDiarioDTO(asiento.getId(), asiento.getFecha(), movimientosDTO);
+    }
+
     @Override
     public void deleteById(Long id) {
         asientoContableRepository.deleteById(id);
-    }
-
-    public AsientoContable crearAsientoContable(AsientoContable asiento, List<MovimientoContable> movimientos) {
-        for (MovimientoContable movimiento : movimientos) {
-            asiento.addMovimiento(movimiento);
-        }
-        return asientoContableRepository.save(asiento);
     }
 }

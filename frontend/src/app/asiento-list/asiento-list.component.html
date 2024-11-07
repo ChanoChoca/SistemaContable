@@ -14,8 +14,8 @@
       <tr>
         <th>ID</th>
         <th>Fecha</th>
-        <th>Usuario</th>
         @if (authService.hasRoleAdmin()) {
+        <th>Usuario</th>
           <th>Acciones</th>
         }
       </tr>
@@ -25,8 +25,8 @@
           <tr>
             <td>{{ asiento.id }}</td>
             <td>{{ asiento.fecha | date: 'dd/MM/yyyy' }}</td>
-            <td>{{ asiento.usuarioEmail }}</td>
             @if (authService.hasRoleAdmin()) {
+            <td>{{ asiento.usuarioEmail }}</td>
               <td>
                 <button class="delete-button" (click)="deleteAsiento(asiento)">Eliminar</button>
                 <button class="btn btn-secondary" [routerLink]="['/asiento/edit', asiento.id]">Modificar</button>
