@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -29,23 +30,27 @@ public class AsientoContableServiceImpl implements AsientoContableService {
 
     @Override
     @Transactional
-    public AsientoContable createAsientoContable(AsientoContable asiento, List<MovimientoContable> movimientos) {
-
-        if (movimientos == null || movimientos.isEmpty()) {
-            throw new IllegalArgumentException("El asiento contable debe tener al menos un movimiento contable.");
+    public AsientoContable updateAsiento(Long id, AsientoContable asientoContable) {
+        Optional<AsientoContable> asientoExistenteOpt = asientoContableRepository.findById(id);
+        if (!asientoExistenteOpt.isPresent()) {
+            throw new NoSuchElementException("AsientoContable not found");
         }
 
-        for (MovimientoContable movimiento : movimientos) {
-            movimiento.setAsiento(asiento);
-            asiento.addMovimiento(movimiento);
-        }
+        AsientoContable asientoExistente = asientoExistenteOpt.get();
+        asientoExistente.setFecha(asientoContable.getFecha());
+        asientoExistente.setUsuarioEmail(asientoContable.getUsuarioEmail());
 
-        return asientoContableRepository.save(asiento);
-    }
+        List<MovimientoContable> nuevosMovimientos = asientoContable.getMovimientos().stream()
+                .map(dto -> {
+                    MovimientoContable movimiento = new MovimientoContable();
+                    movimiento.setDescripcion(dto.getDescripcion());
+                    movimiento.setCuenta(dto.getCuenta());
+                    movimiento.setMonto(dto.getMonto());
+                    movimiento.setEsDebito(dto.isEsDebito());
+                    movimiento.setAsiento(asientoExistente);
+                    return movimiento;
+                }).collect(Collectors.toList());
 
-    @Override
-    @Transactional
-    public AsientoContable updateAsientoContable(AsientoContable asientoExistente, List<MovimientoContable> nuevosMovimientos) {
         // Limpiar los movimientos existentes del asiento
         asientoExistente.getMovimientos().clear();
         asientoContableRepository.save(asientoExistente); // Guarda para reflejar la limpieza en la base de datos
@@ -60,16 +65,33 @@ public class AsientoContableServiceImpl implements AsientoContableService {
         return asientoContableRepository.save(asientoExistente);
     }
 
-    public AsientoContable crearAsientoContable(AsientoContable asiento, List<MovimientoContable> movimientos) {
+    @Override
+    @Transactional
+    public AsientoContable createAsiento(AsientoContable asientoContable) {
+        AsientoContable asiento = new AsientoContable();
+        asiento.setFecha(asientoContable.getFecha());
+        asiento.setUsuarioEmail(asientoContable.getUsuarioEmail());
+
+        List<MovimientoContable> movimientos = asientoContable.getMovimientos().stream()
+                .map(dto -> {
+                    MovimientoContable movimiento = new MovimientoContable();
+                    movimiento.setDescripcion(dto.getDescripcion());
+                    movimiento.setCuenta(dto.getCuenta());
+                    movimiento.setMonto(dto.getMonto());
+                    movimiento.setEsDebito(dto.isEsDebito());
+                    movimiento.setAsiento(asiento);
+                    return movimiento;
+                }).collect(Collectors.toList());
+
+        if (movimientos.isEmpty()) {
+            throw new IllegalArgumentException("El asiento contable debe tener al menos un movimiento contable.");
+        }
+
         for (MovimientoContable movimiento : movimientos) {
             asiento.addMovimiento(movimiento);
         }
-        return asientoContableRepository.save(asiento);
-    }
 
-    @Override
-    public AsientoContable save(AsientoContable asientoContable) {
-        return asientoContableRepository.save(asientoContable);
+        return asientoContableRepository.save(asiento);
     }
 
     @Override
@@ -122,5 +144,12 @@ public class AsientoContableServiceImpl implements AsientoContableService {
     @Override
     public void deleteById(Long id) {
         asientoContableRepository.deleteById(id);
+    }
+
+    public AsientoContable crearAsientoContable(AsientoContable asiento, List<MovimientoContable> movimientos) {
+        for (MovimientoContable movimiento : movimientos) {
+            asiento.addMovimiento(movimiento);
+        }
+        return asientoContableRepository.save(asiento);
     }
 }

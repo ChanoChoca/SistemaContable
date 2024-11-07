@@ -1,5 +1,9 @@
 package com.chanochoca.app.cuenta.service;
 
+import com.chanochoca.app.contable.models.entity.AsientoContable;
+import com.chanochoca.app.contable.models.entity.MovimientoContable;
+import com.chanochoca.app.contable.repository.AsientoContableRepository;
+import com.chanochoca.app.contable.repository.MovimientoContableRepository;
 import com.chanochoca.app.cuenta.models.NewCuentaDTO;
 import com.chanochoca.app.cuenta.models.entity.Cuenta;
 import com.chanochoca.app.cuenta.repository.CuentaRepository;
@@ -14,9 +18,133 @@ import java.util.*;
 
 @Service
 public class CuentaServiceImpl implements CuentaService {
+
     private final CuentaRepository cuentaRepository;
-    public CuentaServiceImpl(CuentaRepository cuentaRepository) {
+    private final MovimientoContableRepository movimientoRepository;
+    private final AsientoContableRepository asientoRepository;
+
+    public CuentaServiceImpl(CuentaRepository cuentaRepository, MovimientoContableRepository movimientoRepository, AsientoContableRepository asientoRepository) {
         this.cuentaRepository = cuentaRepository;
+        this.movimientoRepository = movimientoRepository;
+        this.asientoRepository = asientoRepository;
+    }
+
+    @Override
+    @Transactional
+    public void deleteCuenta(Long id) {
+        Optional<Cuenta> cuentaOptional = cuentaRepository.findById(id);
+
+        if (cuentaOptional.isPresent()) {
+            Cuenta cuentaAEliminar = cuentaOptional.get();
+
+            List<MovimientoContable> movimientosAEliminar = movimientoRepository.findByCuenta_Id(id);
+            for (MovimientoContable movimiento : movimientosAEliminar) {
+                if (movimiento.getId() == null) {
+                    continue;
+                }
+
+                AsientoContable asiento = movimiento.getAsiento();
+                asiento.removeMovimiento(movimiento);
+                asientoRepository.save(asiento);
+
+                movimiento.setCuenta(null);
+                movimiento.setAsiento(null);
+                movimientoRepository.save(movimiento);
+                movimientoRepository.delete(movimiento);
+            }
+
+            if (cuentaAEliminar.getCuentaPadre() != null) {
+                Cuenta cuentaPadre = cuentaAEliminar.getCuentaPadre();
+
+                if (cuentaAEliminar.getSubCuentas() != null && !cuentaAEliminar.getSubCuentas().isEmpty()) {
+                    for (Cuenta subCuenta : cuentaAEliminar.getSubCuentas()) {
+                        subCuenta.setCuentaPadre(cuentaPadre);
+                        cuentaRepository.save(subCuenta);
+                        cuentaPadre.addSubCuenta(subCuenta);
+                    }
+                    cuentaRepository.save(cuentaPadre);
+                } else {
+                    cuentaPadre.removeSubCuenta(cuentaAEliminar);
+                    cuentaRepository.save(cuentaPadre);
+                }
+            } else if (cuentaAEliminar.getSubCuentas() != null && !cuentaAEliminar.getSubCuentas().isEmpty()) {
+                for (Cuenta subCuenta : cuentaAEliminar.getSubCuentas()) {
+                    subCuenta.setCuentaPadre(null);
+                    cuentaRepository.save(subCuenta);
+                }
+            }
+
+            cuentaRepository.deleteById(id);
+        } else {
+            throw new NoSuchElementException("Cuenta not found");
+        }
+    }
+
+    @Override
+    @Transactional
+    public Cuenta updateCuenta(Long id, Cuenta cuenta) {
+        Optional<Cuenta> existingCuenta = cuentaRepository.findById(id);
+        if (existingCuenta.isPresent()) {
+            Cuenta currentCuenta = existingCuenta.get();
+
+            // Comparar y actualizar la cuenta padre si es necesario
+            if (!Objects.equals(currentCuenta.getCuentaPadre(), cuenta.getCuentaPadre())) {
+                Cuenta cuentaPadreAntigua = currentCuenta.getCuentaPadre();
+                Cuenta cuentaPadreNueva = cuenta.getCuentaPadre();
+
+                // Verificar si hay un ciclo en la jerarquía
+                if (hasCyclicHierarchy(currentCuenta, cuentaPadreNueva)) {
+                    throw new IllegalArgumentException("Cyclic hierarchy detected");
+                }
+
+                if (cuentaPadreAntigua != null) {
+                    cuentaPadreAntigua.removeSubCuenta(currentCuenta);
+                    cuentaRepository.save(cuentaPadreAntigua);
+                }
+
+                if (cuentaPadreNueva != null) {
+                    cuentaPadreNueva.addSubCuenta(cuenta);
+                    cuentaRepository.save(cuentaPadreNueva);
+                }
+            }
+
+            // Comparar y actualizar las subcuentas si es necesario
+            if (!Objects.equals(currentCuenta.getSubCuentas(), cuenta.getSubCuentas())) {
+                if (currentCuenta.getSubCuentas() != null) {
+                    if (hasCyclicHierarchyInSubcuentas(currentCuenta, cuenta.getSubCuentas())) {
+                        throw new IllegalArgumentException("Cyclic hierarchy detected in subaccounts");
+                    }
+
+                    for (Cuenta subCuenta : currentCuenta.getSubCuentas()) {
+                        if (subCuenta != null) {
+                            subCuenta.setCuentaPadre(null);
+                            cuentaRepository.save(subCuenta);
+                        }
+                    }
+                }
+
+                if (cuenta.getSubCuentas() != null) {
+                    for (Cuenta subCuenta : cuenta.getSubCuentas()) {
+                        if (subCuenta != null) {
+                            subCuenta.setCuentaPadre(cuenta);
+                            cuentaRepository.save(subCuenta);
+                        }
+                    }
+                }
+            }
+
+            currentCuenta.setNombre(cuenta.getNombre());
+            currentCuenta.setCodigo(cuenta.getCodigo());
+            currentCuenta.setSaldo(cuenta.getSaldo());
+            currentCuenta.setCuentaPadre(cuenta.getCuentaPadre());
+            currentCuenta.setSubCuentas(cuenta.getSubCuentas());
+            currentCuenta.setActiva(cuenta.isActiva());
+            currentCuenta.setEliminada(cuenta.isEliminada());
+
+            return cuentaRepository.save(currentCuenta);
+        } else {
+            throw new NoSuchElementException("Cuenta not found");
+        }
     }
 
     @Override
@@ -79,6 +207,39 @@ public class CuentaServiceImpl implements CuentaService {
         return savedCuenta;
     }
 
+    @Override
+    public Optional<Cuenta> findById(Long id) {
+        return cuentaRepository.findById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Cuenta> findAll(int page, int size, String nombre) {
+        Pageable pageable = PageRequest.of(page, size);
+        return cuentaRepository.findByNombreContaining(nombre, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Cuenta> findCuentasSinPaginado() {
+        Iterable<Cuenta> cuentasIterable = cuentaRepository.findByCuentaPadreIsNull();
+        List<Cuenta> cuentasList = new ArrayList<>();
+        cuentasIterable.forEach(cuentasList::add);
+        return cuentasList;
+    }
+
+    @Override
+    public List<Cuenta> findByNombre(String nombre) {
+        return cuentaRepository.findByNombre(nombre);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Cuenta> getAccountTree(int page, int size, String nombre) {
+        Pageable pageable = PageRequest.of(page, size);
+        return cuentaRepository.findByNombreContainingAndCuentaPadreIsNull(nombre, pageable);
+    }
+
     private boolean hasCyclicHierarchy(Cuenta cuenta, Cuenta potentialParent) {
         Cuenta current = potentialParent;
         while (current != null) {
@@ -90,44 +251,12 @@ public class CuentaServiceImpl implements CuentaService {
         return false;
     }
 
-
-
-
-    @Override
-    @Transactional
-    public Cuenta save(Cuenta cuenta) {
-        return cuentaRepository.save(cuenta);
-    }
-    @Override
-    public Optional<Cuenta> findById(Long id) {
-        return cuentaRepository.findById(id);
-    }
-    @Override
-    @Transactional(readOnly = true)
-    public Page<Cuenta> findAll(int page, int size, String nombre) {
-        Pageable pageable = PageRequest.of(page, size);
-        return cuentaRepository.findByNombreContaining(nombre, pageable);
-    }
-    @Override
-    @Transactional(readOnly = true)
-    public List<Cuenta> findCuentasSinPaginado() {
-        Iterable<Cuenta> cuentasIterable = cuentaRepository.findByCuentaPadreIsNull();
-        List<Cuenta> cuentasList = new ArrayList<>();
-        cuentasIterable.forEach(cuentasList::add);
-        return cuentasList;
-    }
-    @Override
-    public void deleteById(Long id) {
-        cuentaRepository.deleteById(id);
-    }
-    @Override
-    public List<Cuenta> findByNombre(String nombre) {
-        return cuentaRepository.findByNombre(nombre);
-    }
-    @Override
-    @Transactional(readOnly = true)
-    public Page<Cuenta> getAccountTree(int page, int size, String nombre) {
-        Pageable pageable = PageRequest.of(page, size);
-        return cuentaRepository.findByNombreContainingAndCuentaPadreIsNull(nombre, pageable);
+    private boolean hasCyclicHierarchyInSubcuentas(Cuenta cuenta, List<Cuenta> subCuentas) {
+        for (Cuenta subCuenta : subCuentas) {
+            if (subCuenta != null && (subCuenta.equals(cuenta) || hasCyclicHierarchy(cuenta, subCuenta))) {
+                return true;
+            }
+        }
+        return false;
     }
 }

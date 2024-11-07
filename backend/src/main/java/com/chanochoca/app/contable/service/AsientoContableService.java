@@ -12,11 +12,9 @@ import java.util.Optional;
 
 public interface AsientoContableService {
 
-    AsientoContable createAsientoContable(AsientoContable asiento, List<MovimientoContable> movimientos);
+    AsientoContable updateAsiento(Long id, AsientoContable asientoContable);
 
-    AsientoContable updateAsientoContable(AsientoContable asientoExistente, List<MovimientoContable> nuevosMovimientos);
-
-    AsientoContable save(AsientoContable AsientoContable);
+    AsientoContable createAsiento(AsientoContable asientoContable);
 
     Optional<AsientoContable> findById(Long id);
 

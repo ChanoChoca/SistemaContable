@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -22,60 +23,31 @@ import java.util.stream.Collectors;
 public class AsientoContableController {
 
     private final AsientoContableService asientoContableService;
+
     public AsientoContableController(AsientoContableService asientoContableService) {
         this.asientoContableService = asientoContableService;
     }
 
     @PostMapping
     public ResponseEntity<AsientoContable> createAsiento(@Valid @RequestBody AsientoContable asientoContable) {
-
-        AsientoContable asiento = new AsientoContable();
-        asiento.setFecha(asientoContable.getFecha());
-        asiento.setUsuarioEmail(asientoContable.getUsuarioEmail());
-
-        List<MovimientoContable> movimientos = asientoContable.getMovimientos().stream()
-                .map(dto -> {
-                    MovimientoContable movimiento = new MovimientoContable();
-                    movimiento.setDescripcion(dto.getDescripcion());
-                    movimiento.setCuenta(dto.getCuenta());
-                    movimiento.setMonto(dto.getMonto());
-                    movimiento.setEsDebito(dto.isEsDebito());
-                    movimiento.setAsiento(asiento);
-                    return movimiento;
-                }).collect(Collectors.toList());
-
-        AsientoContable savedCuenta = asientoContableService.createAsientoContable(asiento, movimientos);
-
-        return new ResponseEntity<>(savedCuenta, HttpStatus.CREATED);
+        try {
+            AsientoContable savedAsiento = asientoContableService.createAsiento(asientoContable);
+            return new ResponseEntity<>(savedAsiento, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AsientoContable> updateAsiento(
-            @PathVariable Long id,
-            @RequestBody AsientoContable asientoContable) {
-
-        Optional<AsientoContable> asientoExistenteOpt = asientoContableService.findById(id);
-        if (!asientoExistenteOpt.isPresent()) {
+    public ResponseEntity<AsientoContable> updateAsiento(@PathVariable Long id, @RequestBody AsientoContable asientoContable) {
+        try {
+            AsientoContable updatedAsiento = asientoContableService.updateAsiento(id, asientoContable);
+            return ResponseEntity.ok(updatedAsiento);
+        } catch (NoSuchElementException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
-        AsientoContable asientoExistente = asientoExistenteOpt.get();
-        asientoExistente.setFecha(asientoContable.getFecha());
-        asientoExistente.setUsuarioEmail(asientoContable.getUsuarioEmail());
-
-        List<MovimientoContable> nuevosMovimientos = asientoContable.getMovimientos().stream()
-                .map(dto -> {
-                    MovimientoContable movimiento = new MovimientoContable();
-                    movimiento.setDescripcion(dto.getDescripcion());
-                    movimiento.setCuenta(dto.getCuenta());
-                    movimiento.setMonto(dto.getMonto());
-                    movimiento.setEsDebito(dto.isEsDebito());
-                    movimiento.setAsiento(asientoExistente);
-                    return movimiento;
-                }).collect(Collectors.toList());
-
-        AsientoContable actualizado = asientoContableService.updateAsientoContable(asientoExistente, nuevosMovimientos);
-        return ResponseEntity.ok(actualizado);
     }
 
     @GetMapping("/{id}")

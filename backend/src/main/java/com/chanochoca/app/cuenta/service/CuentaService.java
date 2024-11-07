@@ -8,21 +8,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CuentaService {
-
+    void deleteCuenta(Long id);
+    Cuenta updateCuenta(Long id, Cuenta cuenta);
     Cuenta createCuenta(NewCuentaDTO newCuentaDTO);
-
-
-
-
-    Cuenta save(Cuenta cuenta);
 
     Optional<Cuenta> findById(Long id);
 
     Page<Cuenta> findAll(int page, int size, String nombre);
 
     List<Cuenta> findCuentasSinPaginado();
-
-    void deleteById(Long id);
 
     List<Cuenta> findByNombre(String nombre);
 
