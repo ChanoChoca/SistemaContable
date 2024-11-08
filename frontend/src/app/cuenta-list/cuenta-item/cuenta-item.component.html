@@ -6,8 +6,8 @@
     <td>{{ cuenta.saldo }}</td>
     @if (authService.hasRoleAdmin()) {
       <td>
-        <button class="delete-button" (click)="deleteCuenta(cuenta)">Eliminar</button>
-        <button class="btn btn-secondary" [routerLink]="['/cuenta/edit', cuenta.id]">Modificar</button>
+        <button class="delete-button btn-pseudoclase" (click)="deleteCuenta(cuenta)">Eliminar</button>
+        <button class="btn btn-secondary btn-pseudoclase" [routerLink]="['/cuenta/edit', cuenta.id]">Modificar</button>
       </td>
     }
   </tr>

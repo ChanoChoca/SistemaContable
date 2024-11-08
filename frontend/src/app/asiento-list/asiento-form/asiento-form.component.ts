@@ -79,6 +79,18 @@ export class AsientoFormComponent implements OnInit {
   }
 
   onSubmit(): void {
+    // Validar si hay al menos un movimiento agregado
+    if (this.asiento.movimientos.length === 0) {
+      alert('Debe agregar al menos un movimiento contable.');
+      return;
+    }
+
+    // Validar que todos los campos requeridos estén llenos
+    if (!this.asiento.fecha) {
+      alert('Complete todos los campos antes de enviar.');
+      return;
+    }
+
     if (this.isEditMode) {
       this.asientoService.updateAsiento(this.asiento);
     } else {

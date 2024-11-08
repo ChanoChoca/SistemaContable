@@ -1,53 +1,89 @@
-<form (ngSubmit)="onSubmit()" enctype="multipart/form-data">
-  <!-- Campos de descripción y fecha -->
-  <div>
-    <label for="fecha">Fecha:</label>
-    <input type="datetime-local" id="fecha" [(ngModel)]="asiento.fecha" name="fecha" required />
-  </div>
+<div class="asiento-form">
+  <form (ngSubmit)="onSubmit()" enctype="multipart/form-data" #asientoForm="ngForm">
+    <!-- Campos de descripción y fecha -->
+    <div class="divisor">
+      <div>
+        <h1>{{ isEditMode ? 'Modificar Asiento Contable' : 'Crear Asiento Contable' }}</h1>
+        <div>
+          <label for="fecha">Fecha:</label>
+          <input
+            type="datetime-local"
+            id="fecha"
+            [(ngModel)]="asiento.fecha"
+            name="fecha"
+            required
+            #fechaField="ngModel"
+          />
+          @if (fechaField.invalid && fechaField.touched) {
+            <div class="error">
+              La fecha es obligatoria.
+            </div>
+          }
+        </div>
 
-  <!-- Formulario de agregar movimiento -->
-  <div>
-    <h2>Agregar Movimiento</h2>
-    <div>
-      <label for="descripcion">Descripción:</label>
-      <input type="text" id="descripcion" [(ngModel)]="nuevoMovimiento.descripcion" name="descripcion" required />
-    </div>
-    <div>
-      <label for="cuenta">Cuenta:</label>
-      <select id="cuenta" [(ngModel)]="nuevoMovimiento.cuenta" name="cuenta" required>
-        @for (cuenta of cuentas; track cuenta) {
-          <option [ngValue]="cuenta">{{ cuenta.nombre }}</option>
+        <!-- Formulario de agregar movimiento -->
+        <div>
+          <h2>Agregar Movimiento Contable</h2>
+          <div class="separador">
+            <label for="descripcion">Nombre:</label>
+            <input
+              type="text"
+              id="descripcion"
+              [(ngModel)]="nuevoMovimiento.descripcion"
+              name="descripcion"
+            />
+          </div>
+          <div class="separador">
+            <label for="cuenta">Cuenta:</label>
+            <select id="cuenta" [(ngModel)]="nuevoMovimiento.cuenta" name="cuenta">
+              <option [ngValue]="null">Seleccione una cuenta</option>
+              @for (cuenta of cuentas; track cuenta) {
+                <option [ngValue]="cuenta">{{ cuenta.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="separador">
+            <label for="monto">Monto:</label>
+            <input type="number" id="monto" [(ngModel)]="nuevoMovimiento.monto" name="monto" />
+          </div>
+          <div class="separador">
+            <label for="esDebito">Tipo:</label>
+            <select id="esDebito" [(ngModel)]="nuevoMovimiento.esDebito" name="esDebito">
+              <option [ngValue]="true">Débito</option>
+              <option [ngValue]="false">Crédito</option>
+            </select>
+          </div>
+          <div>
+            <button class="separador btn-pseudoclase" type="button" (click)="agregarMovimiento()">
+              Agregar Movimiento
+            </button>
+          </div>
+        </div>
+
+        <button
+          class="separador btn-pseudoclase"
+          type="submit"
+          [disabled]="asiento.movimientos.length === 0 || asientoForm.invalid"
+        >
+          {{ isEditMode ? 'Actualizar' : 'Crear' }} Asiento Contable
+        </button>
+      </div>
+      <div>
+        <!-- Lista de movimientos -->
+        @if (asiento.movimientos.length > 0) {
+          <div class="separador">
+            <h3>Movimientos Agregados</h3>
+            <ul>
+              @for (movimiento of asiento.movimientos; track movimiento; let i = $index) {
+                <li>
+                  {{ movimiento.descripcion }} - {{ movimiento.monto }} - {{ movimiento.esDebito ? 'Débito' : 'Crédito' }}
+                  <button type="button" (click)="eliminarMovimiento(i)">Eliminar</button>
+                </li>
+              }
+            </ul>
+          </div>
         }
-      </select>
+      </div>
     </div>
-    <div>
-      <label for="monto">Monto:</label>
-      <input type="number" id="monto" [(ngModel)]="nuevoMovimiento.monto" name="monto" required />
-    </div>
-    <div>
-      <label for="esDebito">Tipo:</label>
-      <select id="esDebito" [(ngModel)]="nuevoMovimiento.esDebito" name="esDebito">
-        <option [ngValue]="true">Débito</option>
-        <option [ngValue]="false">Crédito</option>
-      </select>
-    </div>
-    <button type="button" (click)="agregarMovimiento()">Agregar Movimiento</button>
-  </div>
-
-  <!-- Lista de movimientos -->
-  @if (asiento.movimientos.length > 0) {
-    <div>
-      <h3>Movimientos Agregados</h3>
-      <ul>
-        @for (movimiento of asiento.movimientos; let i = $index; track movimiento) {
-          <li>
-            {{ movimiento.descripcion }} - {{ movimiento.monto }} - {{ movimiento.esDebito ? 'Débito' : 'Crédito' }}
-            <button type="button" (click)="eliminarMovimiento(i)">Eliminar</button>
-          </li>
-        }
-      </ul>
-    </div>
-  }
-
-  <button type="submit">{{ isEditMode ? 'Actualizar' : 'Crear' }} Asiento Contable</button>
-</form>
+  </form>
+</div>

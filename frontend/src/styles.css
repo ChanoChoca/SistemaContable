@@ -5,3 +5,32 @@ html, body {
   height: 100%;
   width: 100%;
 }
+
+h1, h2, h3 {
+  font-family: "Lato", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+label, input, button, option, li, select, p, tr, td, a{
+  font-family: "Lato", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.btn-pseudoclase {
+  background-color: #fff;
+  color: #01200F;
+  border: 2px solid #01200F;
+  transition: 0.3s ease;
+  padding: 1rem;
+}
+
+.btn-pseudoclase:hover {
+  color: #ffffff !important;
+  background-color: #01200F !important;
+}
+
+a {
+  text-decoration: none;
+}

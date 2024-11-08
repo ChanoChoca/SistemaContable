@@ -2,20 +2,20 @@
   <h2>Lista de Cuentas</h2>
 
   @if (authService.hasRoleAdmin()) {
-    <div class="boton">
-      <button class="btn btn-secondary btn-padding" [routerLink]="['/cuenta/new']">Crear plan de cuenta</button>
+    <div class="boton separador">
+      <button class="btn btn-secondary btn-padding btn-pseudoclase" [routerLink]="['/cuenta/new']">Crear plan de cuenta</button>
     </div>
   }
 
-  <div class="filter-container">
+  <div class="filter-container separador">
     <input type="text" class="form-control" [(ngModel)]="nombre" placeholder="Filtrar por nombre" />
-    <button class="btn btn-secondary" (click)="onSearch()">Buscar</button>
-    <button class="btn btn-secondary" (click)="clearFilters()">Limpiar Filtros</button>
+    <button class="btn btn-secondary btn-pseudoclase" (click)="onSearch()">Buscar</button>
+    <button class="btn btn-secondary btn-pseudoclase" (click)="clearFilters()">Limpiar Filtros</button>
   </div>
 
 
   @if (cuentas.length > 0) {
-    <table class="cuenta-table">
+    <table class="cuenta-table separador">
       <thead>
       <tr>
         <th>ID</th>
@@ -36,10 +36,10 @@
       </tbody>
     </table>
 
-    <div class="pagination-container">
-      <button class="btn btn-secondary" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
+    <div class="pagination-container separador">
+      <button class="btn btn-secondary btn-pseudoclase" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
       <span class="page-indicator">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
-      <button class="btn btn-secondary" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage + 1 >= totalPages">Siguiente</button>
+      <button class="btn btn-secondary btn-pseudoclase" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage + 1 >= totalPages">Siguiente</button>
     </div>
   } @else {
     <div class="no-accounts">

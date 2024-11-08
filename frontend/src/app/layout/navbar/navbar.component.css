@@ -1,6 +1,7 @@
 .navbar-container {
-  background-color: darkgray;
+  background-color: #32746D;
   padding: 10px;
+  color: #fff !important;
 }
 
 .toolbar {
@@ -22,7 +23,6 @@
 .logo-text {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
 }
 
 .toolbar-group-right {
@@ -39,7 +39,7 @@
 .nav-button {
   background: none;
   border: none;
-  color: #333;
+  color: #fff;
   font-size: 16px;
   cursor: pointer;
   transition: color 0.3s ease, text-shadow 0.3s ease;

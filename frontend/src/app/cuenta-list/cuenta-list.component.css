@@ -1,5 +1,7 @@
 .cuenta-list-container {
   padding: 20px;
+  background-color: #9EC5AB;
+  height: 100vh;
 }
 .search-bar {
   margin-bottom: 15px;
@@ -21,17 +23,6 @@
   color: #fff
 }
 
-.delete-button {
-  color: white;
-  background-color: red;
-  border: none;
-  padding: 5px 10px;
-  cursor: pointer;
-}
-.delete-button:hover {
-  background-color: darkred;
-}
-.no-accounts {
-  margin-top: 20px;
-  color: gray;
+.separador {
+  margin-top: 1rem;
 }

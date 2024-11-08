@@ -1,0 +1,12 @@
+nav {
+  text-align: center;
+  background-color: #9EC5AB;
+  height: 100vh;
+}
+
+ul {
+  margin-top: 0;
+  padding-top: 3rem;
+  list-style-position: inside; /* Hace que los puntos de la lista se alineen dentro de los elementos */
+
+}

@@ -62,9 +62,22 @@ export class CuentaFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    // Verificar que subCuentas esté en el formato correcto
+    // Validar que subCuentas esté en el formato correcto
     if (!this.cuenta.subCuentas || this.cuenta.subCuentas.length === 0) {
       this.cuenta.subCuentas = []; // Asegurar que se envíe como un array vacío
+    }
+
+    // Validar que la cuenta no se asigne a sí misma como cuenta padre
+    if (this.cuenta.cuentaPadre && this.cuenta.cuentaPadre.id === this.cuenta.id) {
+      alert('Una cuenta no puede ser su propia cuenta padre.');
+      return;
+    }
+
+    // Validar que la cuenta no se asigne a sí misma como subcuenta
+    const selfAssigned = this.cuenta.subCuentas?.some(subCuenta => subCuenta.id === this.cuenta.id);
+    if (selfAssigned) {
+      alert('Una cuenta no puede ser asignada como subcuenta de sí misma.');
+      return;
     }
 
     if (this.isEditMode) {

@@ -2,14 +2,14 @@
   <h2>Lista de Asientos Contables</h2>
 
   @if (authService.hasRoleAdmin()) {
-    <div class="boton">
-      <button class="btn btn-secondary btn-padding" [routerLink]="['/asiento/new']">Crear Asiento Contable</button>
+    <div class="boton separador">
+      <button class="btn btn-secondary btn-padding btn-pseudoclase" [routerLink]="['/asiento/new']">Crear Asiento Contable</button>
     </div>
   }
 
   @if (asientos.length > 0) {
     <!-- Tabla de asientos -->
-    <table class="asiento-table">
+    <table class="asiento-table separador">
       <thead>
       <tr>
         <th>ID</th>
@@ -28,8 +28,8 @@
             @if (authService.hasRoleAdmin()) {
             <td>{{ asiento.usuarioEmail }}</td>
               <td>
-                <button class="delete-button" (click)="deleteAsiento(asiento)">Eliminar</button>
-                <button class="btn btn-secondary" [routerLink]="['/asiento/edit', asiento.id]">Modificar</button>
+                <button class="delete-button btn-pseudoclase" (click)="deleteAsiento(asiento)">Eliminar</button>
+                <button class="btn btn-secondary btn-pseudoclase" [routerLink]="['/asiento/edit', asiento.id]">Modificar</button>
               </td>
             }
           </tr>
@@ -37,10 +37,10 @@
       </tbody>
     </table>
 
-    <div class="pagination-container">
-      <button class="btn btn-secondary" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
+    <div class="pagination-container" style="text-align: center">
+      <button class="btn btn-secondary btn-pseudoclase" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
       <span class="page-indicator">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
-      <button class="btn btn-secondary" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage + 1 >= totalPages">Siguiente</button>
+      <button class="btn btn-secondary btn-pseudoclase" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage + 1 >= totalPages">Siguiente</button>
     </div>
   } @else {
     <div class="no-asientos">

@@ -7,18 +7,20 @@
       <label for="fechaInicio">Fecha Inicio:</label>
       <input type="date" id="fechaInicio" formControlName="fechaInicio" />
     </div>
-    <div class="form-group">
+    <div class="form-group separador">
       <label for="fechaFin">Fecha Fin:</label>
       <input type="date" id="fechaFin" formControlName="fechaFin" />
     </div>
-    <button type="submit" class="btn btn-primary">Buscar</button>
-    <button type="button" class="btn btn-secondary" (click)="clearFilters()">Limpiar</button>
+    <div class="separador">
+      <button type="submit" class="btn btn-primary btn-pseudoclase">Buscar</button>
+      <button type="button" class="btn btn-secondary btn-pseudoclase" (click)="clearFilters()">Limpiar</button>
+    </div>
   </form>
 
   <!-- Tabla de asientos -->
 
   @if (asientos.length > 0) {
-    <table class="asiento-table">
+    <table class="asiento-table separador">
       <thead>
       <tr>
         <th>ID</th>
@@ -55,12 +57,12 @@
       </tbody>
     </table>
 
-    <button type="button" class="btn btn-success" (click)="imprimirLibroDiario()">Imprimir Libro Diario</button>
+    <button type="button" class="btn btn-success btn-pseudoclase separador" (click)="imprimirLibroDiario()">Imprimir Libro Diario</button>
 
-    <div class="pagination-container">
-      <button class="btn btn-secondary" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
+    <div class="pagination-container separador">
+      <button class="btn btn-secondary btn-pseudoclase" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
       <span class="page-indicator">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
-      <button class="btn btn-secondary" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage + 1 >= totalPages">Siguiente</button>
+      <button class="btn btn-secondary btn-pseudoclase" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage + 1 >= totalPages">Siguiente</button>
     </div>
 
   } @else {

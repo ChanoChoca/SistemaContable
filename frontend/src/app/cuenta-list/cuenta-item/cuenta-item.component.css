@@ -1,6 +1,8 @@
 tr {
   display: grid;
   grid-template-columns: 1fr 5fr 2fr 2fr 4fr;
+  background-color: #32746D;
+  color: #fff;
 }
 td {
   padding: 8px;

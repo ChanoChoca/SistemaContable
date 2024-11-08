@@ -1,45 +1,98 @@
-<form (ngSubmit)="onSubmit()" enctype="multipart/form-data">
-  <h1>Formulario de Creación/Edición (Plan de Cuentas)</h1>
+<section class="form">
+  <form #cuentaForm="ngForm" (ngSubmit)="onSubmit()" enctype="multipart/form-data">
+    <h1>{{ isEditMode ? 'Modificar' : 'Crear' }} Plan de Cuenta</h1>
 
-  <!-- Campo Nombre -->
-  <div>
-    <label for="nombre">Nombre:</label>
-    <input type="text" id="nombre" [(ngModel)]="cuenta.nombre" name="nombre" required />
-  </div>
-
-  <!-- Campo Código -->
-  <div>
-    <label for="codigo">Código:</label>
-    <input type="text" id="codigo" [(ngModel)]="cuenta.codigo" name="codigo" required />
-  </div>
-
-  <!-- Campo Código -->
-  <div>
-    <label for="saldo">Saldo:</label>
-    <input type="number" id="saldo" [(ngModel)]="cuenta.saldo" name="saldo" required />
-  </div>
-
-  <!-- Selector de Cuenta Padre -->
-  <div>
-    <label for="cuentaPadre">Cuenta Padre:</label>
-    <select id="cuentaPadre" [(ngModel)]="cuenta.cuentaPadre" name="cuentaPadre">
-      <option [ngValue]="null">Ninguna</option>
-      @for (cuenta of cuentas; track cuenta) {
-        <option [ngValue]="cuenta">{{ cuenta.nombre }}</option>
+    <!-- Campo Nombre -->
+    <div>
+      <label for="nombre">Nombre:</label>
+      <input
+        type="text"
+        id="nombre"
+        [(ngModel)]="cuenta.nombre"
+        name="nombre"
+        required
+        #nombreInput="ngModel"
+      />
+      @if (nombreInput.invalid && nombreInput.touched) {
+        <div class="error">El nombre es requerido.</div>
       }
-    </select>
-  </div>
+    </div>
 
-  <!-- Selector Múltiple para Subcuentas -->
-  <div>
-    <label for="subCuentas">Subcuentas:</label>
-    <select id="subCuentas" [(ngModel)]="cuenta.subCuentas" name="subCuentas" multiple>
-      <option [ngValue]=null>Ninguna</option>
-      @for (cuenta of cuentas; track cuenta) {
-        <option [ngValue]="cuenta">{{ cuenta.nombre }}</option>
+    <!-- Campo Código -->
+    <div class="separador">
+      <label for="codigo">Código:</label>
+      <input
+        type="text"
+        id="codigo"
+        [(ngModel)]="cuenta.codigo"
+        name="codigo"
+        required
+        #codigoInput="ngModel"
+      />
+      @if (codigoInput.invalid && codigoInput.touched) {
+        <div class="error">El código es requerido.</div>
       }
-    </select>
-  </div>
+    </div>
 
-  <button type="submit">{{ isEditMode ? 'Actualizar' : 'Crear' }} Plan de Cuenta</button>
-</form>
+    <!-- Campo Saldo -->
+    <div class="separador">
+      <label for="saldo">Saldo:</label>
+      <input
+        type="number"
+        id="saldo"
+        [(ngModel)]="cuenta.saldo"
+        name="saldo"
+        required
+        #saldoInput="ngModel"
+      />
+      @if (saldoInput.invalid && saldoInput.touched) {
+        <div class="error">El saldo es requerido.</div>
+      }
+    </div>
+
+    <!-- Selector de Cuenta Padre -->
+    <div class="separador">
+      <label for="cuentaPadre">Cuenta Padre:</label>
+      <select
+        id="cuentaPadre"
+        [(ngModel)]="cuenta.cuentaPadre"
+        name="cuentaPadre"
+        #cuentaPadreSelect="ngModel"
+      >
+        <option [ngValue]="null">Ninguna</option>
+        @for (cuenta of cuentas; track cuenta) {
+          <option [ngValue]="cuenta">
+            {{ cuenta.nombre }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <!-- Selector Múltiple para Subcuentas -->
+    <div class="separador">
+      <label for="subCuentas">Subcuentas:</label>
+      <select
+        id="subCuentas"
+        [(ngModel)]="cuenta.subCuentas"
+        name="subCuentas"
+        multiple
+        #subCuentasSelect="ngModel"
+      >
+        @for (cuenta of cuentas; track cuenta) {
+          <option [ngValue]="cuenta">
+            {{ cuenta.nombre }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <!-- Botón de Envío -->
+    <button
+      class="separador btn-pseudoclase"
+      type="submit"
+      [disabled]="cuentaForm.invalid"
+    >
+      {{ isEditMode ? 'Actualizar' : 'Crear' }} Plan de Cuenta
+    </button>
+  </form>
+</section>
