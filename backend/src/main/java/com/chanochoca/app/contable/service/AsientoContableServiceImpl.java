@@ -109,7 +109,8 @@ public class AsientoContableServiceImpl implements AsientoContableService {
                     movimiento.setDescripcion(dto.getDescripcion());
                     movimiento.setCuenta(dto.getCuenta());
                     movimiento.setMonto(dto.getMonto());
-                    movimiento.setEsDebito(dto.isEsDebito());
+                    movimiento.setTipoMovimiento(dto.getTipoMovimiento());
+
                     movimiento.setAsiento(asientoExistente);
                     return movimiento;
                 }).collect(Collectors.toList());
@@ -139,7 +140,7 @@ public class AsientoContableServiceImpl implements AsientoContableService {
         List<MovimientoLibroDiarioDTO> movimientosDTO = asiento.getMovimientos().stream()
                 .map(movimiento -> new MovimientoLibroDiarioDTO(
                         movimiento.getDescripcion(),
-                        movimiento.isEsDebito(),
+                        movimiento.getTipoMovimiento(),
                         movimiento.getMonto()
                 ))
                 .collect(Collectors.toList());

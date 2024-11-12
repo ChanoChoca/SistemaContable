@@ -29,6 +29,7 @@ export class LibroMayorComponent implements OnInit {
   filtroForm: FormGroup;
   saldoAcumulativo: number[] = [];
   nombreCuentaSeleccionada: string = '';
+  busquedaRealizada: boolean = false;
 
   constructor(
     private cuentaService: CuentaService,
@@ -73,16 +74,23 @@ export class LibroMayorComponent implements OnInit {
       return;
     }
 
-    const cuentaSeleccionada = this.cuentas.find(cuenta => cuenta.id === parseInt(cuentaId, 10));
-    this.nombreCuentaSeleccionada = cuentaSeleccionada ? cuentaSeleccionada.nombre : 'Cuenta Desconocida';
+    this.busquedaRealizada = true;  // Marcar que se ha realizado una búsqueda
 
-    this.reportesService.getLibroMayor(cuentaId, fechaInicio, fechaFin)
-      .subscribe((data: MovimientoContableLibroMayor[]) => { // Cambia MovimientoContable a AsientoContableLibroMayor
-        this.movimientos = data;
-        this.calcularSaldoAcumulativo();
-      }, error => {
-        console.error('Error fetching movements:', error);
-      });
+    this.cuentaService.getCuentaById(parseInt(cuentaId, 10)).subscribe(cuenta => {
+      this.nombreCuentaSeleccionada = cuenta ? cuenta.nombre : 'Cuenta Desconocida';
+
+      this.reportesService.getLibroMayor(cuentaId, fechaInicio, fechaFin)
+        .subscribe((data: MovimientoContableLibroMayor[]) => {
+          this.movimientos = data;
+          if (this.movimientos.length === 0) {
+            this.saldoAcumulativo = [cuenta.saldo];
+          } else {
+            this.calcularSaldoAcumulativo();
+          }
+        }, error => {
+          console.error('Error fetching movements:', error);
+        });
+    });
   }
 
   calcularSaldoAcumulativo(): void {
@@ -90,7 +98,7 @@ export class LibroMayorComponent implements OnInit {
     this.saldoAcumulativo = [saldo];
 
     this.movimientos.forEach(movimiento => {
-      if (movimiento.esDebito) {
+      if (['+A', '-P', 'R-'].includes(movimiento.tipoMovimiento)) {
         saldo += movimiento.monto;
       } else {
         saldo -= movimiento.monto;
@@ -119,9 +127,15 @@ export class LibroMayorComponent implements OnInit {
     doc.setFontSize(16);
     doc.text('Libro Mayor', 14, 20);
 
+    const agregarUnDia = (fecha: string | Date): string => {
+      const date = new Date(fecha);
+      date.setDate(date.getDate() + 1); // Aumenta un día a la fecha
+      return date.toLocaleDateString('es-ES'); // Devuelve la fecha con el formato adecuado
+    };
+
     const { fechaInicio, fechaFin } = this.filtroForm.value;
-    const fechaInicioTexto = fechaInicio ? new Date(fechaInicio).toLocaleDateString() : 'N/A';
-    const fechaFinTexto = fechaFin ? new Date(fechaFin).toLocaleDateString() : 'N/A';
+    const fechaInicioTexto = fechaInicio ? agregarUnDia(fechaInicio) : 'N/A';
+    const fechaFinTexto = fechaFin ? agregarUnDia(fechaFin) : 'N/A';
 
     doc.setFontSize(12);
     doc.text(`Cuenta: ${this.nombreCuentaSeleccionada} | Periodo: ${fechaInicioTexto} - ${fechaFinTexto}`, 14, 35);
@@ -135,9 +149,9 @@ export class LibroMayorComponent implements OnInit {
 
     this.movimientos.forEach((movimiento, index) => {
       const fecha = movimiento.fecha ? new Date(movimiento.fecha).toLocaleDateString() : '';
-      const descripcion = movimiento.descripcion;
-      const debe = movimiento.esDebito ? movimiento.monto : '';
-      const haber = movimiento.esDebito ? '' : movimiento.monto;
+      const descripcion = `${movimiento.descripcion} (${movimiento.tipoMovimiento})`;
+      const debe = ['+A', '-P', 'R-'].includes(movimiento.tipoMovimiento) ? movimiento.monto : '';
+      const haber = ['-A', '+P', 'R+'].includes(movimiento.tipoMovimiento) ? movimiento.monto : '';
       const saldo = this.saldoAcumulativo[index + 1]; // Siguiente saldo después del movimiento
 
       rows.push([fecha, descripcion, debe, haber, saldo]);

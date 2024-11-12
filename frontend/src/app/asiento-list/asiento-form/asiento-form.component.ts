@@ -22,7 +22,7 @@ export class AsientoFormComponent implements OnInit {
   isEditMode = false;
   cuentas: Cuenta[] = []; // Lista de cuentas para seleccionar
   usuarioEmail: string = ''; // Email del usuario autenticado
-  nuevoMovimiento: MovimientoContable = { descripcion: '', cuenta: null!, asiento: null!, monto: 0, esDebito: true };
+  nuevoMovimiento: MovimientoContable = { descripcion: '', cuenta: null!, asiento: null!, monto: 0, tipoMovimiento: '+A' };
 
   constructor(
     private asientoService: AsientoService,
@@ -69,9 +69,42 @@ export class AsientoFormComponent implements OnInit {
   }
 
   agregarMovimiento(): void {
-    this.asiento.movimientos.push({ ...this.nuevoMovimiento }); // Agrega el movimiento al array de movimientos del asiento
+    // Validar que todos los campos estén completos antes de agregar el movimiento
+    if (
+      !this.nuevoMovimiento.descripcion ||
+      // Permitir movimientos sin cuenta solo si son de tipo 'R-' o 'R+'
+      (!this.nuevoMovimiento.cuenta && !['R-', 'R+'].includes(this.nuevoMovimiento.tipoMovimiento)) ||
+      this.nuevoMovimiento.monto <= 0 ||
+      !this.nuevoMovimiento.tipoMovimiento
+    ) {
+      alert('Por favor complete todos los campos requeridos antes de agregar el movimiento.');
+      return;
+    }
+
+    // Agrega el movimiento al array de movimientos del asiento
+    this.asiento.movimientos.push({ ...this.nuevoMovimiento });
+
     // Resetea el movimiento para permitir agregar uno nuevo
-    this.nuevoMovimiento = { descripcion: '', cuenta: null!, asiento: null!, monto: 0, esDebito: true };
+    this.nuevoMovimiento = {
+      descripcion: '',
+      cuenta: null!, // Permitir movimientos sin cuenta si así lo prefieres
+      asiento: null!,
+      monto: 0,
+      tipoMovimiento: '+A'
+    };
+  }
+
+  getTipoMovimientoDescripcion(tipo: string): string {
+    const descripciones: { [key: string]: string } = {
+      '+A': 'Activo Aumenta',
+      '-A': 'Activo Disminuye',
+      '+P': 'Pasivo Aumenta',
+      '-P': 'Pasivo Disminuye',
+      'R+': 'Resultado Positivo',
+      'R-': 'Resultado Negativo',
+      'PN': 'Patrimonio Neto'
+    };
+    return descripciones[tipo] || 'Desconocido';
   }
 
   eliminarMovimiento(index: number): void {
@@ -85,16 +118,48 @@ export class AsientoFormComponent implements OnInit {
       return;
     }
 
-    // Validar que todos los campos requeridos estén llenos
+    // Validar que todos los movimientos sean válidos
+    for (const movimiento of this.asiento.movimientos) {
+      // Permitir movimientos sin cuenta solo si son de tipo 'R-' o 'R+'
+      if (!movimiento.cuenta && !['R-', 'R+'].includes(movimiento.tipoMovimiento)) {
+        alert('Todos los movimientos deben tener una cuenta asociada, excepto para movimientos de tipo "Resultado Negativo" o "Resultado Positivo".');
+        return;
+      }
+    }
+
     if (!this.asiento.fecha) {
+      this.asientoService.deleteAsientoSig();
       alert('Complete todos los campos antes de enviar.');
       return;
     }
 
+    let esActualizado: boolean;
+
     if (this.isEditMode) {
+      esActualizado = true;
       this.asientoService.updateAsiento(this.asiento);
     } else {
+      esActualizado = false;
       this.asientoService.createAsiento(this.asiento);
+    }
+
+    // Reaccionar cuando la señal cambie (usando computed)
+    if (esActualizado) {
+      // Usar un efecto para manejar el estado de éxito o error
+      this.asientoService.updateAsientoSig(); // Activa la señal
+      // Recargar la lista de cuentas después de actualizar
+      this.cargarCuentas();
+      // Redirigir o mostrar mensaje de éxito
+      alert('Asiento actualizado exitosamente');
+      this.router.navigate(['/asientos']);
+    } else {
+      // Usar un efecto para manejar el estado de éxito o error
+      this.asientoService.createAsientoSig(); // Activa la señal
+      // Recargar la lista de cuentas después de crear
+      this.cargarCuentas();
+      // Redirigir o mostrar mensaje de éxito
+      alert('Asiento creado exitosamente');
+      this.router.navigate(['/asientos']);
     }
   }
 }

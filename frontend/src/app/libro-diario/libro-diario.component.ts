@@ -45,6 +45,29 @@ export class LibroDiarioComponent implements OnInit {
     this.buscarAsientos();
   }
 
+  // Método para determinar el tipo de asiento
+  determinarTipoAsiento(asiento: AsientoContable | AsientoContableLibroMayor): string {
+    // Convertimos a AsientoContable si es AsientoContableLibroMayor
+    const movimientos = 'movimientos' in asiento ? asiento.movimientos : [];
+
+    const tieneMovimientoModificativo = movimientos.some(mov => ['R+', 'R-'].includes(mov.tipoMovimiento));
+    return tieneMovimientoModificativo ? 'Modificativa' : 'Permutativa';
+  }
+
+  // Método para calcular el total de la columna "Debe"
+  calcularTotalDebe(): number {
+    return this.asientos.flatMap(asiento => asiento.movimientos)
+      .filter(movimiento => ['+A', '-P', 'R-'].includes(movimiento.tipoMovimiento))
+      .reduce((total, movimiento) => total + movimiento.monto, 0);
+  }
+
+  // Método para calcular el total de la columna "Haber"
+  calcularTotalHaber(): number {
+    return this.asientos.flatMap(asiento => asiento.movimientos)
+      .filter(movimiento => ['-A', '+P', 'R+'].includes(movimiento.tipoMovimiento))
+      .reduce((total, movimiento) => total + movimiento.monto, 0);
+  }
+
   // Buscar asientos contables entre dos fechas
   buscarAsientos(): void {
     const { fechaInicio, fechaFin } = this.filtroForm.value;
@@ -91,21 +114,33 @@ export class LibroDiarioComponent implements OnInit {
         doc.text(`Periodo: ${fechaInicioTexto} - ${fechaFinTexto}`, 14, 35);
 
         // Crear el encabezado de la tabla
-        const columns = ['ID', 'Fecha', 'Movimientos', 'Debe', 'Haber'];
+        const columns = ['ID', 'Fecha', 'Movimientos', 'Debe', 'Haber', 'Tipo'];
 
         // Preparar los datos de la tabla
         const rows = asientos.flatMap(asiento =>
           asiento.movimientos.map((movimiento, index) => {
             const fecha = asiento.fecha ? new Date(asiento.fecha).toLocaleDateString() : '-----';
-            const descripcion = movimiento.descripcion || '';
-            const debe = movimiento.esDebito ? movimiento.monto : '';
-            const haber = movimiento.esDebito ? '' : movimiento.monto;
 
-            return index === 0 ?
-              [asiento.id || '', fecha, descripcion, debe, haber] :
-              ['', '', descripcion, debe, haber];
+            // Ajustar la descripción para incluir el tipo de movimiento entre paréntesis
+            const descripcion = `${movimiento.descripcion} (${movimiento.tipoMovimiento})`;
+
+            const debe = ['+A', '-P', 'R-'].includes(movimiento.tipoMovimiento) ? movimiento.monto : '';
+            const haber = ['-A', '+P', 'R+'].includes(movimiento.tipoMovimiento) ? movimiento.monto : '';
+
+            // Determinar el tipo de asiento (solo en la primera fila del asiento)
+            const tipoAsiento = index === 0 ? this.determinarTipoAsiento(asiento) : '';
+
+            return index === 0
+              ? [asiento.id || '', fecha, descripcion, debe, haber, tipoAsiento]
+              : ['', '', descripcion, debe, haber, ''];
           })
         );
+
+        // Agregar las sumas al final del PDF
+        const totalDebe = this.calcularTotalDebe();
+        const totalHaber = this.calcularTotalHaber();
+
+        rows.push(['', '', '', totalDebe, totalHaber, '']);
 
         // Usar autotable para agregar la tabla al PDF
         autoTable(doc, {

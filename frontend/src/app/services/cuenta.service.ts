@@ -79,17 +79,7 @@ export class CuentaService {
   }
 
   // Método para eliminar cuenta por ID
-  deleteCuenta(id: number): void {
-    this.http.delete<void>(`${environment.API_URL}/cuentas/${id}`)
-      .subscribe({
-        next: () => {
-          // Si la eliminación es exitosa, puedes establecer un estado de éxito
-          this.deleteCuenta$.set(State.Builder<string>().forSuccess(`Cuenta ${id} eliminada correctamente.`));
-        },
-        error: err => {
-          // Si hay un error, establece el estado de error
-          this.deleteCuenta$.set(State.Builder<string>().forError(err));
-        }
-      });
+  deleteCuenta(id: number): Observable<void> {
+    return this.http.delete<void>(`${environment.API_URL}/cuentas/${id}`);
   }
 }

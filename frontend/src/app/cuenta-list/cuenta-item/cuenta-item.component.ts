@@ -1,7 +1,7 @@
-import {Component, inject, Input} from '@angular/core';
+import {Component, EventEmitter, inject, Input, Output} from '@angular/core';
 import {Cuenta} from "../../models/cuenta.model";
 import {AuthService} from "../../core/auth/auth.service";
-import {RouterLink} from "@angular/router";
+import {Router, RouterLink} from "@angular/router";
 import {CuentaService} from "../../services/cuenta.service";
 
 @Component({
@@ -14,18 +14,25 @@ import {CuentaService} from "../../services/cuenta.service";
   styleUrl: './cuenta-item.component.css'
 })
 export class CuentaItemComponent {
-
-  @Input() cuenta: Cuenta | undefined; // Entrada para cada cuenta
-  @Input() level: number = 0; // Nivel de jerarquía, para la indentación
+  @Input() cuenta: Cuenta | undefined;
+  @Input() level: number = 0;
+  @Output() cuentaEliminada = new EventEmitter<Cuenta>();  // Emite la cuenta eliminada
   authService = inject(AuthService);
 
   constructor(
     private cuentaService: CuentaService,
-    // private toastr: ToastrService  // Opcional para notificaciones
+    private router: Router
   ) {}
 
-  // Método para eliminar cuenta
   deleteCuenta(cuenta: Cuenta): void {
-    this.cuentaService.deleteCuenta(cuenta.id!);
+    this.cuentaService.deleteCuenta(cuenta.id!).subscribe({
+      next: () => {
+        alert('Cuenta eliminada exitosamente');
+        this.cuentaEliminada.emit(cuenta);  // Emitir la cuenta eliminada
+      },
+      error: (err) => {
+        alert('Error al eliminar la cuenta');
+      },
+    });
   }
 }

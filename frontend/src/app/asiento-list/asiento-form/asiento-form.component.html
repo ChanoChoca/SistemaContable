@@ -36,9 +36,11 @@
           <div class="separador">
             <label for="cuenta">Cuenta:</label>
             <select id="cuenta" [(ngModel)]="nuevoMovimiento.cuenta" name="cuenta">
-              <option [ngValue]="null">Seleccione una cuenta</option>
+              <option [ngValue]="null">Seleccione una cuenta (opcional)</option>
               @for (cuenta of cuentas; track cuenta) {
-                <option [ngValue]="cuenta">{{ cuenta.nombre }}</option>
+                <option [ngValue]="cuenta">
+                  {{ cuenta.nombre }}
+                </option>
               }
             </select>
           </div>
@@ -47,11 +49,22 @@
             <input type="number" id="monto" [(ngModel)]="nuevoMovimiento.monto" name="monto" />
           </div>
           <div class="separador">
-            <label for="esDebito">Tipo:</label>
-            <select id="esDebito" [(ngModel)]="nuevoMovimiento.esDebito" name="esDebito">
-              <option [ngValue]="true">Débito</option>
-              <option [ngValue]="false">Crédito</option>
+            <label for="tipoMovimiento">Tipo de Movimiento:</label>
+            <select id="tipoMovimiento" [(ngModel)]="nuevoMovimiento.tipoMovimiento" name="tipoMovimiento" required #tipoMovimientoField="ngModel">
+              <option [ngValue]="null" disabled>Seleccione un tipo</option>
+              <option [ngValue]="'+A'">Activo Aumenta (+A)</option>
+              <option [ngValue]="'-A'">Activo Disminuye (-A)</option>
+              <option [ngValue]="'+P'">Pasivo Aumenta (+P)</option>
+              <option [ngValue]="'-P'">Pasivo Disminuye (-P)</option>
+              <option [ngValue]="'R+'">Resultado Positivo (R+)</option>
+              <option [ngValue]="'R-'">Resultado Negativo (R-)</option>
+              <option [ngValue]="'PN'">Patrimonio Neto (PN)</option>
             </select>
+            @if (tipoMovimientoField.invalid && tipoMovimientoField.touched) {
+              <div class="error">
+                Debe seleccionar un tipo de movimiento.
+              </div>
+            }
           </div>
           <div>
             <button class="separador btn-pseudoclase" type="button" (click)="agregarMovimiento()">
@@ -63,10 +76,10 @@
         <button
           class="separador btn-pseudoclase"
           type="submit"
-          [disabled]="asiento.movimientos.length === 0 || asientoForm.invalid"
-        >
+          [disabled]="asiento.movimientos.length === 0 || asientoForm.invalid">
           {{ isEditMode ? 'Actualizar' : 'Crear' }} Asiento Contable
         </button>
+
       </div>
       <div>
         <!-- Lista de movimientos -->
@@ -76,7 +89,7 @@
             <ul>
               @for (movimiento of asiento.movimientos; track movimiento; let i = $index) {
                 <li>
-                  {{ movimiento.descripcion }} - {{ movimiento.monto }} - {{ movimiento.esDebito ? 'Débito' : 'Crédito' }}
+                  {{ movimiento.descripcion }} - {{ movimiento.monto }} - {{ getTipoMovimientoDescripcion(movimiento.tipoMovimiento) }}
                   <button type="button" (click)="eliminarMovimiento(i)">Eliminar</button>
                 </li>
               }

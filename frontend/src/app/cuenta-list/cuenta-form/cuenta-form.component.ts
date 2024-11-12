@@ -80,10 +80,30 @@ export class CuentaFormComponent implements OnInit {
       return;
     }
 
+    // Realizar la operación de creación o actualización
     if (this.isEditMode) {
       this.cuentaService.updateCuenta(this.cuenta);
     } else {
       this.cuentaService.createCuenta(this.cuenta);
+    }
+
+    // Usar un efecto para manejar el estado de éxito o error
+    this.cuentaService.updateCuentaSig(); // Activa la señal
+    this.cuentaService.createCuentaSig(); // Activa la señal
+
+    // Reaccionar cuando la señal cambie (usando computed)
+    if (this.cuentaService.updateCuentaSig()) {
+      // Recargar la lista de cuentas después de actualizar
+      this.cargarCuentas();
+      // Redirigir o mostrar mensaje de éxito
+      alert('Cuenta actualizada exitosamente');
+      this.router.navigate(['/cuentas']);
+    } else if (this.cuentaService.createCuentaSig()) {
+      // Recargar la lista de cuentas después de crear
+      this.cargarCuentas();
+      // Redirigir o mostrar mensaje de éxito
+      alert('Cuenta creada exitosamente');
+      this.router.navigate(['/cuentas']);
     }
   }
 }

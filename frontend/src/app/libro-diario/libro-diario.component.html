@@ -28,6 +28,7 @@
         <th>Movimientos</th>
         <th>Debe</th>
         <th>Haber</th>
+        <th>Tipo</th>
       </tr>
       </thead>
       <tbody>
@@ -42,18 +43,31 @@
                 <td></td>
                 <td></td>
               }
-              <td>{{ movimento.descripcion }}</td>
+              <td>{{ movimento.descripcion }} ({{movimento.tipoMovimiento}})</td>
               <!-- Clasificar si es debe o haber -->
-              @if (movimento.esDebito) {
+              @if (['+A', '-P', 'R-'].includes(movimento.tipoMovimiento)) {
                 <td>{{ movimento.monto }}</td>
                 <td></td>
               } @else {
                 <td></td>
                 <td>{{ movimento.monto }}</td>
               }
+              <!-- Mostrar el tipo de asiento solo en la primera fila -->
+              @if (movimento === asiento.movimientos[0]) {
+                <td>{{ determinarTipoAsiento(asiento) }}</td>
+              } @else {
+                <td></td>
+              }
             </tr>
           }
         }
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>{{ calcularTotalDebe() }}</td>
+        <td>{{ calcularTotalHaber() }}</td>
+      </tr>
       </tbody>
     </table>
 

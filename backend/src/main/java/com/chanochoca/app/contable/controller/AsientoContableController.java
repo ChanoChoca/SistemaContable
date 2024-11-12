@@ -3,7 +3,6 @@ package com.chanochoca.app.contable.controller;
 import com.chanochoca.app.contable.models.AsientoContableDTO;
 import com.chanochoca.app.contable.models.AsientoLibroDiarioDTO;
 import com.chanochoca.app.contable.models.entity.AsientoContable;
-import com.chanochoca.app.contable.models.entity.MovimientoContable;
 import com.chanochoca.app.contable.service.AsientoContableService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -16,7 +15,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/asientos-contables")

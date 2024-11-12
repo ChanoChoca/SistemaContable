@@ -41,7 +41,6 @@
           <th>Debe</th>
           <th>Haber</th>
           <th>Saldo</th>
-<!--          <th>Cuenta</th>-->
         </tr>
         </thead>
         <tbody>
@@ -52,23 +51,22 @@
           <td></td>
           <td>{{ saldoAcumulativo[0] }}</td>
         </tr>
-        @for (movimiento of movimientos; track movimiento; let i = $index) {
-          <tr>
-            <td>{{ movimiento.fecha | date: 'dd/MM/yyyy' }}</td>
-            <td>{{movimiento.descripcion}}</td>
+          @for (movimiento of movimientos; track movimiento; let i = $index) {
+            <tr>
+              <td>{{ movimiento.fecha | date: 'dd/MM/yyyy' }}</td>
+              <td>{{movimiento.descripcion}} ({{movimiento.tipoMovimiento}})</td>
 
-            @if (movimiento.esDebito) {
-              <td>{{movimiento.monto}}</td>
-              <td></td>
-            } @else {
-              <td></td>
-              <td>{{movimiento.monto}}</td>
-            }
+              @if (['+A', '-P', 'R-'].includes(movimiento.tipoMovimiento)) {
+                <td>{{movimiento.monto}}</td>
+                <td></td>
+              } @else {
+                <td></td>
+                <td>{{movimiento.monto}}</td>
+              }
 
-            <td>{{ saldoAcumulativo[i + 1] }}</td>
-<!--            <td>{{movimiento.asiento.usuarioEmail}}</td>-->
-          </tr>
-        }
+              <td>{{ saldoAcumulativo[i + 1] }}</td>
+            </tr>
+          }
         <tr>
           <td></td>
           <td>Saldo final</td>
@@ -81,9 +79,37 @@
 
       <button type="button" class="btn btn-success btn-pseudoclase separador" (click)="imprimirLibroMayor()">Imprimir Libro Mayor</button>
     </div>
-  } @else {
+  } @else if (busquedaRealizada) {
     <div class="no-asientos">
-      <p>No hay asientos contables para la cuenta seleccionada en el rango de fechas.</p>
+      <table>
+        <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Operación</th>
+          <th>Debe</th>
+          <th>Haber</th>
+          <th>Saldo</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td></td>
+          <td>Saldo inicial</td>
+          <td></td>
+          <td></td>
+          <td>{{ saldoAcumulativo[0] }}</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Saldo final</td>
+          <td></td>
+          <td></td>
+          <td>{{ saldoAcumulativo[0] }}</td>
+        </tr>
+        </tbody>
+      </table>
     </div>
+
+    <button type="button" class="btn btn-success btn-pseudoclase separador" (click)="imprimirLibroMayor()">Imprimir Libro Mayor</button>
   }
 </div>

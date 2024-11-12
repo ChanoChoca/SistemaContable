@@ -52,7 +52,7 @@ public class MovimientoContableServiceImpl implements MovimientoContableService 
                 .map(movimiento -> new MovimientoLibroMayorDTO(
                         movimiento.getAsiento().getFecha(),
                         movimiento.getDescripcion(),
-                        movimiento.isEsDebito(),
+                        movimiento.getTipoMovimiento(),
                         movimiento.getMonto()))
                 .collect(Collectors.toList());
     }

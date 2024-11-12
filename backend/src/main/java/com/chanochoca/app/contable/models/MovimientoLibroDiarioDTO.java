@@ -1,18 +1,17 @@
 package com.chanochoca.app.contable.models;
 
+import com.chanochoca.app.contable.models.entity.TipoMovimiento;
+
 import java.math.BigDecimal;
 
 public class MovimientoLibroDiarioDTO {
     private String descripcion;
-    private boolean esDebito;
+    private String tipoMovimiento;
     private BigDecimal monto;
 
-    public MovimientoLibroDiarioDTO() {
-    }
-
-    public MovimientoLibroDiarioDTO(String descripcion, boolean esDebito, BigDecimal monto) {
+    public MovimientoLibroDiarioDTO(String descripcion, String tipoMovimiento, BigDecimal monto) {
         this.descripcion = descripcion;
-        this.esDebito = esDebito;
+        this.tipoMovimiento = tipoMovimiento;
         this.monto = monto;
     }
 
@@ -24,12 +23,12 @@ public class MovimientoLibroDiarioDTO {
         this.descripcion = descripcion;
     }
 
-    public boolean isEsDebito() {
-        return esDebito;
+    public String getTipoMovimiento() {
+        return tipoMovimiento;
     }
 
-    public void setEsDebito(boolean esDebito) {
-        this.esDebito = esDebito;
+    public void setTipoMovimiento(String tipoMovimiento) {
+        this.tipoMovimiento = tipoMovimiento;
     }
 
     public BigDecimal getMonto() {

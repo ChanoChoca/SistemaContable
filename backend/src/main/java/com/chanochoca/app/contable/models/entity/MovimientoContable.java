@@ -20,18 +20,18 @@ public class MovimientoContable {
     private String descripcion;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "cuenta_id", nullable = false)
+    @JoinColumn(name = "cuenta_id")
     private Cuenta cuenta;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "asiento_id")
+    @JoinColumn(name = "asiento_id", nullable = false)
     private AsientoContable asiento;
 
     @Column(nullable = false)
     private BigDecimal monto;
 
     @Column(nullable = false)
-    private boolean esDebito;  // Si es un débito o crédito
+    private String tipoMovimiento;
 
     public MovimientoContable() {
     }
@@ -76,11 +76,11 @@ public class MovimientoContable {
         this.monto = monto;
     }
 
-    public boolean isEsDebito() {
-        return esDebito;
+    public String getTipoMovimiento() {
+        return tipoMovimiento;
     }
 
-    public void setEsDebito(boolean esDebito) {
-        this.esDebito = esDebito;
+    public void setTipoMovimiento(String tipoMovimiento) {
+        this.tipoMovimiento = tipoMovimiento;
     }
 }

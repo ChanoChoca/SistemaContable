@@ -51,6 +51,7 @@ export class AsientoListComponent implements OnInit {
   deleteAsiento(asiento: AsientoContableGet): void {  // Cambiado a AsientoContableGet
     if (confirm("¿Estás seguro de que deseas eliminar este asiento?")) {
       this.asientoService.deleteAsiento(asiento.id!);
+      alert('Asiento eliminado exitosamente');
     }
   }
 

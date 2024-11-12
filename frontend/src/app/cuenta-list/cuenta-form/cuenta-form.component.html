@@ -78,6 +78,7 @@
         multiple
         #subCuentasSelect="ngModel"
       >
+        <option [ngValue]="null">Ninguna</option>
         @for (cuenta of cuentas; track cuenta) {
           <option [ngValue]="cuenta">
             {{ cuenta.nombre }}
