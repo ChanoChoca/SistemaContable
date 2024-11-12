@@ -106,8 +106,14 @@ export class LibroDiarioComponent implements OnInit {
         doc.setFontSize(16);
         doc.text('Libro Diario', 14, 20);
 
-        const fechaInicioTexto = fechaInicio ? new Date(fechaInicio).toLocaleDateString() : 'N/A';
-        const fechaFinTexto = fechaFin ? new Date(fechaFin).toLocaleDateString() : 'N/A';
+        const agregarUnDia = (fecha: string | Date): string => {
+          const date = new Date(fecha);
+          date.setDate(date.getDate() + 1); // Aumenta un día a la fecha
+          return date.toLocaleDateString('es-ES'); // Devuelve la fecha con el formato adecuado
+        };
+
+        const fechaInicioTexto = fechaInicio ? agregarUnDia(fechaInicio) : 'N/A';
+        const fechaFinTexto = fechaFin ? agregarUnDia(fechaFin) : 'N/A';
 
         // Imprimir la cuenta y el periodo en una sola línea
         doc.setFontSize(12);
@@ -119,7 +125,7 @@ export class LibroDiarioComponent implements OnInit {
         // Preparar los datos de la tabla
         const rows = asientos.flatMap(asiento =>
           asiento.movimientos.map((movimiento, index) => {
-            const fecha = asiento.fecha ? new Date(asiento.fecha).toLocaleDateString() : '-----';
+            const fecha = asiento.fecha ? agregarUnDia(asiento.fecha) : '';
 
             // Ajustar la descripción para incluir el tipo de movimiento entre paréntesis
             const descripcion = `${movimiento.descripcion} (${movimiento.tipoMovimiento})`;

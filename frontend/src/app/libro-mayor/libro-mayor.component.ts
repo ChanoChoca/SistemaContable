@@ -148,7 +148,7 @@ export class LibroMayorComponent implements OnInit {
     rows.push(['', 'Saldo inicial', '', '', saldoInicial]);
 
     this.movimientos.forEach((movimiento, index) => {
-      const fecha = movimiento.fecha ? new Date(movimiento.fecha).toLocaleDateString() : '';
+      const fecha = movimiento.fecha ? agregarUnDia(movimiento.fecha) : ''; // Aquí aplicamos agregarUnDia
       const descripcion = `${movimiento.descripcion} (${movimiento.tipoMovimiento})`;
       const debe = ['+A', '-P', 'R-'].includes(movimiento.tipoMovimiento) ? movimiento.monto : '';
       const haber = ['-A', '+P', 'R+'].includes(movimiento.tipoMovimiento) ? movimiento.monto : '';
