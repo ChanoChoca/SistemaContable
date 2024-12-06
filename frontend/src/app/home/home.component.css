@@ -1,12 +1,27 @@
-nav {
-  text-align: center;
-  background-color: #9EC5AB;
-  height: 100vh;
+.rounded-b-lg {
+  border-bottom: 1px solid #264653;
+  border-left: 1px solid #264653;
+  border-right: 1px solid #264653;
 }
 
-ul {
-  margin-top: 0;
-  padding-top: 3rem;
-  list-style-position: inside; /* Hace que los puntos de la lista se alineen dentro de los elementos */
+.aspect-square {
+  position: relative; /* Importante para que el ícono use esta referencia */
+}
 
+.icon {
+  position: absolute;
+  top: 10px; /* Ajusta según el espacio deseado desde el borde superior */
+  right: 10px; /* Ajusta según el espacio deseado desde el borde derecho */
+  width: 60px;
+  height: 60px;
+  transform: rotate(45deg);
+  color: #264653;
+}
+
+.card {
+  transition: 500ms;
+}
+
+.card:hover {
+  transform: scale(1.2);
 }

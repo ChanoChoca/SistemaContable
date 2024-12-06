@@ -1,165 +1,211 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {FormsModule} from "@angular/forms";
-import {AsientoContable} from "../../models/asiento.model";
-import {AsientoService} from "../../services/asiento.service";
-import {ActivatedRoute, Router} from "@angular/router";
-import {MovimientoContable} from "../../models/movimiento.model";
-import {AuthService} from "../../core/auth/auth.service";
+import {
+  AbstractControl,
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators
+} from "@angular/forms";
+import {CuentaAsiento} from "../../models/cuenta-asiento.model";
+import {Asiento} from "../../models/asiento.model";
 import {Cuenta} from "../../models/cuenta.model";
 import {CuentaService} from "../../services/cuenta.service";
+import {AsientoService} from "../../services/asiento.service";
+import {CuentaAsientoService} from "../../services/cuenta-asiento.service";
+import {AuthService} from "../../core/auth/auth.service";
+import {Router} from "@angular/router";
+import {FaIconComponent} from "@fortawesome/angular-fontawesome";
+import {faXmark} from "@fortawesome/free-solid-svg-icons/faXmark";
 
 @Component({
   selector: 'app-asiento-form',
   standalone: true,
   imports: [
-    FormsModule
+    FormsModule,
+    ReactiveFormsModule,
+    FaIconComponent
   ],
   templateUrl: './asiento-form.component.html',
   styleUrl: './asiento-form.component.css'
 })
+
 export class AsientoFormComponent implements OnInit {
-  asiento: AsientoContable = { fecha: new Date(), usuarioEmail: '', movimientos: [] };
-  isEditMode = false;
-  cuentas: Cuenta[] = []; // Lista de cuentas para seleccionar
-  usuarioEmail: string = ''; // Email del usuario autenticado
-  nuevoMovimiento: MovimientoContable = { descripcion: '', cuenta: null!, asiento: null!, monto: 0, tipoMovimiento: '+A' };
+  asientoForm: FormGroup;
+  cuentasDisponibles: Cuenta[] = [];
+  fechaMinima: string = '';
+  fechaMaxima: string = '';
+  montosExcedenSaldo: boolean = false;
+  saldosExcedidos: { [idCuenta: number]: boolean } = {};
+  authService = inject(AuthService);
+  asientoId: number | null = null;
 
   constructor(
-    private asientoService: AsientoService,
+    private fb: FormBuilder,
     private cuentaService: CuentaService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private authService: AuthService
-  ) {}
+    private asientoService: AsientoService,
+    private cuentaAsientoService: CuentaAsientoService,
+    private router: Router
+  ) {
+    this.asientoForm = this.fb.group({
+      fecha: ['', [Validators.required, this.fechaValida.bind(this)]],
+      descripcion: ['', Validators.required],
+      cuentas: this.fb.array([])
+    });
+  }
 
   ngOnInit(): void {
     this.cargarCuentas();
-    this.asiento.usuarioEmail = this.authService.getAuthenticatedUserEmail();
-    this.route.params.subscribe(params => {
-      const id = params['id'];
-      if (id) {
-        this.isEditMode = true;
-        this.asientoService.getAsientoById(id).subscribe(asiento => {
-          this.asiento = asiento;
-          this.usuarioEmail = asiento.usuarioEmail;
-        });
+    this.obtenerUltimaFechaAsiento();
+    this.fechaMaxima = new Date().toISOString().split('T')[0];
+
+    // Escuchar cambios en el FormArray para validar saldos
+    this.cuentas.valueChanges.subscribe(() => this.verificarSaldos());
+  }
+
+  cargarCuentas() {
+    this.cuentaService.getCuentas().subscribe((cuentas) => {
+      this.cuentasDisponibles = cuentas.filter(cuenta =>
+        (cuenta.activa && (!cuenta.subCuentas || cuenta.subCuentas.length === 0))
+      );
+      console.log(cuentas);
+    });
+  }
+
+  obtenerUltimaFechaAsiento() {
+    this.asientoService.getUltimaFechaAsiento().subscribe((ultimaFecha: Date) => {
+      this.fechaMinima = new Date(ultimaFecha).toISOString().split('T')[0];
+    });
+  }
+
+  fechaValida(control: FormControl) {
+    const fechaSeleccionada = new Date(control.value).getTime();
+    const fechaMin = new Date(this.fechaMinima).getTime();
+    const fechaMax = new Date(this.fechaMaxima).getTime();
+
+    if (fechaSeleccionada < fechaMin || fechaSeleccionada > fechaMax) {
+      return { fechaInvalida: true };
+    }
+    return null;
+  }
+
+  get cuentas() {
+    return this.asientoForm.get('cuentas') as FormArray;
+  }
+
+  agregarCuenta() {
+    const cuentaGroup = this.fb.group({
+      idCuenta: ['', Validators.required],
+      debe: [0, [Validators.required, Validators.min(0)]],
+      haber: [0, [Validators.required, Validators.min(0)]]
+    });
+    this.cuentas.push(cuentaGroup);
+  }
+
+  eliminarCuenta(i: number) {
+    this.cuentas.removeAt(i);
+    this.verificarSaldos();
+  }
+
+  verificarSaldos() {
+    this.montosExcedenSaldo = false;
+    this.saldosExcedidos = {};
+
+    const cuentaMontos: { [idCuenta: number]: number } = {};
+
+    this.cuentas.controls.forEach((control) => {
+      const idCuenta = control.get('idCuenta')?.value;
+      const debe = control.get('debe')?.value || 0;
+      const haber = control.get('haber')?.value || 0;
+
+      if (idCuenta) {
+        if (!cuentaMontos[idCuenta]) {
+          cuentaMontos[idCuenta] = 0;
+        }
+
+        cuentaMontos[idCuenta] -= debe;
+        cuentaMontos[idCuenta] += haber;
       }
     });
-  }
 
-  // Método para cargar las cuentas
-  cargarCuentas(): void {
-    this.cuentaService.getCuentas().subscribe(cuentas => {
-      this.cuentas = this.flattenCuentas(cuentas); // Aplana la estructura de cuentas con subcuentas
-    });
-  }
+    for (const idCuenta in cuentaMontos) {
+      const cuentaSeleccionada = this.cuentasDisponibles.find((cuenta) => cuenta.id === +idCuenta);
+      if (cuentaSeleccionada) {
+        const saldoActual = cuentaSeleccionada.saldoActual;
+        const saldoRestante = saldoActual - cuentaMontos[idCuenta];
 
-  // Función recursiva para aplanar la estructura de cuentas y subcuentas
-  flattenCuentas(cuentas: Cuenta[]): Cuenta[] {
-    let result: Cuenta[] = [];
-
-    cuentas.forEach(cuenta => {
-      result.push(cuenta); // Agrega la cuenta actual
-      if (cuenta.subCuentas && cuenta.subCuentas.length > 0) {
-        result = result.concat(this.flattenCuentas(cuenta.subCuentas)); // Llama recursivamente y concatena subcuentas
+        if (saldoRestante < 0) {
+          this.montosExcedenSaldo = true;
+          this.saldosExcedidos[+idCuenta] = true;
+        }
       }
+    }
+  }
+
+  isFormInvalid(): boolean {
+    const invalidForm = this.asientoForm.invalid || this.montosExcedenSaldo;
+
+    const allCuentasEmpty = this.cuentas.controls.every(control => {
+      const debe = control.get('debe')?.value || 0;
+      const haber = control.get('haber')?.value || 0;
+      return debe === 0 && haber === 0;
     });
 
-    return result;
+    return invalidForm || (this.cuentas.length > 0 && allCuentasEmpty);
   }
 
-  agregarMovimiento(): void {
-    // Validar que todos los campos estén completos antes de agregar el movimiento
-    if (
-      !this.nuevoMovimiento.descripcion ||
-      // Permitir movimientos sin cuenta solo si son de tipo 'R-' o 'R+'
-      (!this.nuevoMovimiento.cuenta && !['R-', 'R+'].includes(this.nuevoMovimiento.tipoMovimiento)) ||
-      this.nuevoMovimiento.monto <= 0 ||
-      !this.nuevoMovimiento.tipoMovimiento
-    ) {
-      alert('Por favor complete todos los campos requeridos antes de agregar el movimiento.');
-      return;
-    }
+  async onSubmit() {
+    if (this.asientoForm.valid && !this.montosExcedenSaldo) {
+      // Crear el objeto Asiento
+      const asiento: Asiento = {
+        fecha: new Date(this.asientoForm.value.fecha),
+        descripcion: this.asientoForm.value.descripcion,
+        usuarioEmail: this.authService.getAuthenticatedUserEmail()
+      };
 
-    // Agrega el movimiento al array de movimientos del asiento
-    this.asiento.movimientos.push({ ...this.nuevoMovimiento });
-
-    // Resetea el movimiento para permitir agregar uno nuevo
-    this.nuevoMovimiento = {
-      descripcion: '',
-      cuenta: null!, // Permitir movimientos sin cuenta si así lo prefieres
-      asiento: null!,
-      monto: 0,
-      tipoMovimiento: '+A'
-    };
-  }
-
-  getTipoMovimientoDescripcion(tipo: string): string {
-    const descripciones: { [key: string]: string } = {
-      '+A': 'Activo Aumenta',
-      '-A': 'Activo Disminuye',
-      '+P': 'Pasivo Aumenta',
-      '-P': 'Pasivo Disminuye',
-      'R+': 'Resultado Positivo',
-      'R-': 'Resultado Negativo',
-      'PN': 'Patrimonio Neto'
-    };
-    return descripciones[tipo] || 'Desconocido';
-  }
-
-  eliminarMovimiento(index: number): void {
-    this.asiento.movimientos.splice(index, 1);
-  }
-
-  onSubmit(): void {
-    // Validar si hay al menos un movimiento agregado
-    if (this.asiento.movimientos.length === 0) {
-      alert('Debe agregar al menos un movimiento contable.');
-      return;
-    }
-
-    // Validar que todos los movimientos sean válidos
-    for (const movimiento of this.asiento.movimientos) {
-      // Permitir movimientos sin cuenta solo si son de tipo 'R-' o 'R+'
-      if (!movimiento.cuenta && !['R-', 'R+'].includes(movimiento.tipoMovimiento)) {
-        alert('Todos los movimientos deben tener una cuenta asociada, excepto para movimientos de tipo "Resultado Negativo" o "Resultado Positivo".');
+      // Si no hay cuentas, solo crear el asiento
+      if (this.cuentas.length === 0) {
+        this.asientoService.createAsiento(asiento);
+        this.router.navigate(['/asientos']);
         return;
       }
-    }
 
-    if (!this.asiento.fecha) {
-      this.asientoService.deleteAsientoSig();
-      alert('Complete todos los campos antes de enviar.');
-      return;
-    }
+      // Mapear las cuentas afectadas
+      const cuentasAfectadas: CuentaAsiento[] = this.asientoForm.value.cuentas.map((cuenta: any) => {
+        const cuentaEncontrada = this.cuentasDisponibles.find(c => c.id === +cuenta.idCuenta);
+        return {
+          id: undefined,
+          cuenta: cuentaEncontrada!,
+          debe: cuenta.debe,
+          haber: cuenta.haber,
+          saldo: 0
+        };
+      });
 
-    let esActualizado: boolean;
+      // Procesar las cuentas de forma secuencial
+      for (const cuentaAfectada of cuentasAfectadas) {
+        if (cuentaAfectada.debe > 0) {
+          cuentaAfectada.saldo = cuentaAfectada.cuenta.saldoActual + cuentaAfectada.debe;
+        } else {
+          cuentaAfectada.saldo = cuentaAfectada.cuenta.saldoActual - cuentaAfectada.haber;
+        }
 
-    if (this.isEditMode) {
-      esActualizado = true;
-      this.asientoService.updateAsiento(this.asiento);
-    } else {
-      esActualizado = false;
-      this.asientoService.createAsiento(this.asiento);
-    }
+        // Actualizar saldo en el backend de forma secuencial
+        try {
+          await this.cuentaService.actualizarSaldoCuenta(cuentaAfectada.cuenta.id!, cuentaAfectada.saldo).toPromise();
+          console.log(`Saldo actualizado para la cuenta ${cuentaAfectada.cuenta.nombre}`);
+        } catch (error) {
+          console.error(`Error al actualizar el saldo para la cuenta ${cuentaAfectada.cuenta.nombre}:`, error);
+        }
+      }
 
-    // Reaccionar cuando la señal cambie (usando computed)
-    if (esActualizado) {
-      // Usar un efecto para manejar el estado de éxito o error
-      this.asientoService.updateAsientoSig(); // Activa la señal
-      // Recargar la lista de cuentas después de actualizar
-      this.cargarCuentas();
-      // Redirigir o mostrar mensaje de éxito
-      alert('Asiento actualizado exitosamente');
-      this.router.navigate(['/asientos']);
-    } else {
-      // Usar un efecto para manejar el estado de éxito o error
-      this.asientoService.createAsientoSig(); // Activa la señal
-      // Recargar la lista de cuentas después de crear
-      this.cargarCuentas();
-      // Redirigir o mostrar mensaje de éxito
-      alert('Asiento creado exitosamente');
+      // Crear las CuentasAsiento después de actualizar los saldos
+      this.cuentaAsientoService.crearCuentasAsiento(asiento, cuentasAfectadas);
       this.router.navigate(['/asientos']);
     }
   }
+
+  protected readonly faXmark = faXmark;
 }

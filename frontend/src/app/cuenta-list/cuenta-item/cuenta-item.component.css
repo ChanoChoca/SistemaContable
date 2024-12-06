@@ -1,10 +1,7 @@
-tr {
-  display: grid;
-  grid-template-columns: 1fr 5fr 2fr 2fr 4fr;
-  background-color: #32746D;
-  color: #fff;
+.admin-columns {
+  grid-template-columns: 1fr 3fr 2fr 2fr 4fr; /* Para admin: incluye columna de usuario y acciones */
 }
-td {
-  padding: 8px;
-  border: 1px solid #8C8C8C;
+
+.user-columns {
+  grid-template-columns: 2fr 3fr 2fr 2fr; /* Para usuario normal: excluye columnas adicionales */
 }

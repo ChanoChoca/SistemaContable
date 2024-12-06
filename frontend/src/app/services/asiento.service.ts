@@ -1,11 +1,10 @@
 import {computed, inject, Injectable, signal, WritableSignal} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AsientoContable } from '../models/asiento.model';
 import {environment} from "../../environments/environment";
 import {Page} from "../models/page.model";
 import {State} from "../core/model/state.model";
-import {AsientoContableGet} from "../models/asiento.model";
+import {Asiento} from "../models/asiento.model";
 
 @Injectable({
   providedIn: 'root'
@@ -16,8 +15,8 @@ export class AsientoService {
   private http = inject(HttpClient);
 
   // Signal para el estado de crear un asiento
-  private createAsiento$: WritableSignal<State<AsientoContable>>
-    = signal(State.Builder<AsientoContable>().forInit());
+  private createAsiento$: WritableSignal<State<Asiento>>
+    = signal(State.Builder<Asiento>().forInit());
   createAsientoSig = computed(() => this.createAsiento$());
 
   // Signal para el estado de la eliminación de asiento
@@ -26,44 +25,44 @@ export class AsientoService {
   deleteAsientoSig = computed(() => this.deleteAsiento$());
 
   // Signal para el estado de la actualización de asiento
-  private updateAsiento$: WritableSignal<State<AsientoContable>>
-    = signal(State.Builder<AsientoContable>().forInit());
+  private updateAsiento$: WritableSignal<State<Asiento>>
+    = signal(State.Builder<Asiento>().forInit());
   updateAsientoSig = computed(() => this.updateAsiento$());
 
   // Obtener todos los asientos
-  getAllAsientos(page: number = 0, size: number = 1): Observable<Page<AsientoContableGet>> {
+  getAllAsientos(page: number = 0, size: number = 1): Observable<Page<Asiento>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
 
-    return this.http.get<Page<AsientoContableGet>>(`${environment.API_URL}/asientos-contables`, {params});
+    return this.http.get<Page<Asiento>>(`${environment.API_URL}/asientos-contables`, {params});
   }
 
   // Obtener asiento por ID
-  getAsientoById(id: number): Observable<AsientoContable> {
-    return this.http.get<AsientoContable>(`${environment.API_URL}/asientos-contables/${id}`);
+  getAsientoById(id: number): Observable<Asiento> {
+    return this.http.get<Asiento>(`${environment.API_URL}/asientos-contables/${id}`);
   }
 
-  updateAsiento(asiento: AsientoContable): void {
-    this.http.put<AsientoContable>(`${environment.API_URL}/asientos-contables/${asiento.id}`, asiento)
+  updateAsiento(asiento: Asiento): void {
+    this.http.put<Asiento>(`${environment.API_URL}/asientos-contables/${asiento.id}`, asiento)
       .subscribe({
         next: updatedAsiento => {
           // Si la actualización es exitosa, establece un estado de éxito
-          this.updateAsiento$.set(State.Builder<AsientoContable>().forSuccess(updatedAsiento));
+          this.updateAsiento$.set(State.Builder<Asiento>().forSuccess(updatedAsiento));
         },
         error: err => {
           // Si hay un error, establece el estado de error
-          this.updateAsiento$.set(State.Builder<AsientoContable>().forError(err));
+          this.updateAsiento$.set(State.Builder<Asiento>().forError(err));
         }
       });
   }
 
   // Crear un nuevo asiento
-  createAsiento(asiento: AsientoContable): void {
-    this.http.post<AsientoContable>(`${environment.API_URL}/asientos-contables`, asiento)
+  createAsiento(asiento: Asiento): void {
+    this.http.post<Asiento>(`${environment.API_URL}/asientos-contables`, asiento)
       .subscribe({
-        next: createdAsiento => this.createAsiento$.set(State.Builder<AsientoContable>().forSuccess(createdAsiento)),
-        error: err => this.createAsiento$.set(State.Builder<AsientoContable>().forError(err)),
+        next: createdAsiento => this.createAsiento$.set(State.Builder<Asiento>().forSuccess(createdAsiento)),
+        error: err => this.createAsiento$.set(State.Builder<Asiento>().forError(err)),
       });
   }
 
@@ -80,5 +79,9 @@ export class AsientoService {
           this.deleteAsiento$.set(State.Builder<string>().forError(err));
         }
       });
+  }
+
+  getUltimaFechaAsiento(): Observable<Date> {
+    return this.http.get<Date>(`${environment.API_URL}/asientos-contables/ultima-fecha`)
   }
 }

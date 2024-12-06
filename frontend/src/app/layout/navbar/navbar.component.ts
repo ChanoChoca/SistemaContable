@@ -101,9 +101,4 @@ export class NavbarComponent implements OnInit {
       ];
     }
   }
-
-  // Verifica si el usuario tiene el rol de "landlord"
-  hasRoleAdmin(): boolean {
-    return this.authService.hasAnyAuthority("ROL_ADMIN");
-  }
 }

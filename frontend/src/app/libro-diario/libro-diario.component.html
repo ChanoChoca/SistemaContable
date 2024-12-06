@@ -1,87 +1,106 @@
-<div class="libro-diario-container">
-  <h2>Libro Diario</h2>
+<main class="text-center">
+  <h1>Libro Diario</h1>
 
   <!-- Formulario de filtro -->
-  <form [formGroup]="filtroForm" (ngSubmit)="onSearch()">
-    <div class="form-group">
+  <form [formGroup]="filtroForm" (ngSubmit)="onSearch()" class="inline-flex flex-col gap-5 text-left my-10">
+    <div>
       <label for="fechaInicio">Fecha Inicio:</label>
-      <input type="date" id="fechaInicio" formControlName="fechaInicio" />
+      <input type="date" id="fechaInicio" formControlName="fechaInicio" class="px-1 py-2 rounded-lg" />
     </div>
-    <div class="form-group separador">
-      <label for="fechaFin">Fecha Fin:</label>
-      <input type="date" id="fechaFin" formControlName="fechaFin" />
+    <div>
+      <label for="fechaFin" class="mr-4">Fecha Fin:</label>
+      <input type="date" id="fechaFin" formControlName="fechaFin" class="px-1 py-2 rounded-lg" />
     </div>
-    <div class="separador">
-      <button type="submit" class="btn btn-primary btn-pseudoclase">Buscar</button>
-      <button type="button" class="btn btn-secondary btn-pseudoclase" (click)="clearFilters()">Limpiar</button>
+    <div class="text-center flex gap-3">
+      <div style="text-align: -webkit-center">
+        <button type="submit" class="btn-pseudoclase my-10 flex gap-3 items-center">Buscar<fa-icon [icon]="faMagnifyingGlass" size="2x"/></button>
+      </div>
+      <div style="text-align: -webkit-center">
+        <button type="button" class="btn-pseudoclase my-10 flex gap-3 items-center" (click)="clearFilters()">Limpiar<fa-icon [icon]="faEraser" size="2x"/></button>
+      </div>
     </div>
   </form>
 
   <!-- Tabla de asientos -->
+  @if (cuentaAsientos.length > 0) {
+    <div>
+      <table class="w-full">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Operación</th>
+          <th>Movimientos</th>
+          <th>Debe</th>
+          <th>Haber</th>
+          <th>Tipo</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (cuentaAsiento of cuentaAsientos; track cuentaAsiento; let i = $index) {
+            <!-- Mostrar la fecha solo si el asiento actual tiene un id diferente al anterior -->
+            @if (i === 0 || cuentaAsiento.asiento.id !== cuentaAsientos[i - 1].asiento.id) {
+              <tr>
+                <td>{{ cuentaAsiento.asiento.id }}</td>
+                <td>{{ cuentaAsiento.asiento.fecha | date: 'dd/MM/yyyy' }}</td>
+                <td>{{ cuentaAsiento.cuenta.nombre }}</td>
+                @if (cuentaAsiento.debe > 0) {
+                  <td>{{cuentaAsiento.debe}}</td>
+                  <td></td>
+                } @else {
+                  <td></td>
+                  <td>{{cuentaAsiento.haber}}</td>
+                }
+                <td>{{ determinarTipoAsiento(cuentaAsiento) }}</td>
+              </tr>
+            }
 
-  @if (asientos.length > 0) {
-    <table class="asiento-table separador">
-      <thead>
-      <tr>
-        <th>ID</th>
-        <th>Operación</th>
-        <th>Movimientos</th>
-        <th>Debe</th>
-        <th>Haber</th>
-        <th>Tipo</th>
-      </tr>
-      </thead>
-      <tbody>
-        @for (asiento of asientos; track asiento) {
-          @for (movimento of asiento.movimientos; track movimento) {
-            <tr>
-              <!-- Mostrar id y fecha solo en la primera fila de cada asiento -->
-              @if (movimento === asiento.movimientos[0]) {
-                <td>{{ asiento.id }}</td>
-                <td>{{ asiento.fecha | date: 'dd/MM/yyyy' }}</td>
-              } @else {
+            <!-- Mostrar los movimientos, con valores en Debe y Haber -->
+            @if (i !== 0 && cuentaAsiento.asiento.id === cuentaAsientos[i - 1].asiento.id) {
+              <tr>
                 <td></td>
                 <td></td>
-              }
-              <td>{{ movimento.descripcion }} ({{movimento.tipoMovimiento}})</td>
-              <!-- Clasificar si es debe o haber -->
-              @if (['+A', '-P', 'R-'].includes(movimento.tipoMovimiento)) {
-                <td>{{ movimento.monto }}</td>
+                <td>{{ cuentaAsiento.cuenta.nombre }}</td>
+                @if (cuentaAsiento.debe > 0) {
+                  <td>{{cuentaAsiento.debe}}</td>
+                  <td></td>
+                } @else {
+                  <td></td>
+                  <td>{{cuentaAsiento.haber}}</td>
+                }
                 <td></td>
-              } @else {
-                <td></td>
-                <td>{{ movimento.monto }}</td>
-              }
-              <!-- Mostrar el tipo de asiento solo en la primera fila -->
-              @if (movimento === asiento.movimientos[0]) {
-                <td>{{ determinarTipoAsiento(asiento) }}</td>
-              } @else {
-                <td></td>
-              }
-            </tr>
+              </tr>
+            }
           }
-        }
-      <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>{{ calcularTotalDebe() }}</td>
-        <td>{{ calcularTotalHaber() }}</td>
-      </tr>
-      </tbody>
-    </table>
 
-    <button type="button" class="btn btn-success btn-pseudoclase separador" (click)="imprimirLibroDiario()">Imprimir Libro Diario</button>
+        <!-- Fila de totales -->
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>{{ totalDebe }}</td>
+          <td>{{ totalHaber }}</td>
+        </tr>
+        </tbody>
+      </table>
 
-    <div class="pagination-container separador">
-      <button class="btn btn-secondary btn-pseudoclase" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
-      <span class="page-indicator">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
-      <button class="btn btn-secondary btn-pseudoclase" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage + 1 >= totalPages">Siguiente</button>
+      <!-- Botón para imprimir -->
+      <div style="text-align: -webkit-center">
+        <button type="button" class="btn-pseudoclase my-10 flex gap-3 items-center" (click)="imprimirLibroDiario()">Imprimir Libro Diario<fa-icon [icon]="faDownload"  size="2x"/></button>
+      </div>
+
+      <!-- Paginación -->
+      <div class="flex gap-3 justify-center items-center">
+        <button class="btn-pseudoclase" (click)="onPageChange(currentPage - 1)" [hidden]="currentPage === 0">Anterior</button>
+        <span>Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+        <button class="btn-pseudoclase" (click)="onPageChange(currentPage + 1)" [hidden]="currentPage + 1 === totalPages">Siguiente</button>
+      </div>
     </div>
+  }
 
-  } @else {
-    <div class="no-asientos">
+  <!-- Mensaje si no hay asientos -->
+  @if (cuentaAsientos.length === 0) {
+    <div class="text-center">
       <p>No hay asientos contables en el rango de fechas seleccionado.</p>
     </div>
   }
-</div>
+</main>

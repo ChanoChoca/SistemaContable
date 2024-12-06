@@ -1,21 +1,23 @@
-@if (cuenta) {
-  <tr>
-    <td [style.paddingLeft.px]="level * 20">{{ cuenta.id }}</td> <!-- Indentación dinámica -->
-    <td>{{ cuenta.nombre }}</td>
-    <td>{{ cuenta.codigo }}</td>
-    <td>{{ cuenta.saldo }}</td>
-    @if (authService.hasRoleAdmin()) {
-      <td>
-        <button class="delete-button btn-pseudoclase" (click)="deleteCuenta(cuenta)">Eliminar</button>
-        <button class="btn btn-secondary btn-pseudoclase" [routerLink]="['/cuenta/edit', cuenta.id]">Modificar</button>
-      </td>
-    }
-  </tr>
-}
+<tr class="grid" [ngClass]="authService.hasRoleAdmin() ? 'admin-columns' : 'user-columns'">
+  <td class="content-center">{{ getNumeroCuenta(parentPrefix, cuenta) }}</td>
+  <td class="content-center">{{ cuenta?.nombre }}</td>
+  <td class="content-center">{{ cuenta?.saldoActual }}</td>
+  <td class="content-center">{{ cuenta?.activa ? 'Activa' : 'Eliminada' }}</td>
+  @if (authService.hasRoleAdmin()) {
+    <td class="flex gap-3 justify-center">
+      <button class="delete-button btn-pseudoclase" (click)="deleteCuenta(cuenta!)">Eliminar</button>
+      <button class="btn btn-secondary btn-pseudoclase" (click)="editCuenta(cuenta!)">Modificar</button>
+    </td>
+  }
+</tr>
 
-<!-- Recursividad: Mostrar subcuentas si existen -->
-@for (subCuenta of cuenta?.subCuentas; track cuenta) {
+<!-- Recursividad: Mostrar subcuentas -->
+@for (subCuenta of cuenta?.subCuentas; track subCuenta) {
   <ng-container>
-    <app-cuenta-item [cuenta]="subCuenta" [level]="level + 1"></app-cuenta-item>
+    <app-cuenta-item
+      [cuenta]="subCuenta"
+      [level]="level + 1"
+      [parentPrefix]="getNumeroCuenta(parentPrefix, cuenta)">
+    </app-cuenta-item>
   </ng-container>
 }

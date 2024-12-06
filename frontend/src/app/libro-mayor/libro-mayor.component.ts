@@ -2,32 +2,33 @@ import { Component, OnInit } from '@angular/core';
 import { ReportesService } from '../services/reportes.service';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {DatePipe} from "@angular/common";
-import {MovimientoContable, MovimientoContableLibroMayor} from "../models/movimiento.model";
 import {Cuenta} from "../models/cuenta.model";
 import {CuentaService} from "../services/cuenta.service";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-
-// Fecha (movimiento), operacion (movimiento), debe, haber
-// Se tendrá un saldo inicial y un saldo final
-// La operación representa una sumatoria de varios movimientos con el mismo nombre.
+import {CuentaAsiento} from "../models/cuenta-asiento.model";
+import {faMagnifyingGlass} from "@fortawesome/free-solid-svg-icons/faMagnifyingGlass";
+import {FaIconComponent} from "@fortawesome/angular-fontawesome";
+import {faEraser} from "@fortawesome/free-solid-svg-icons/faEraser";
+import {faDownload} from "@fortawesome/free-solid-svg-icons/faDownload";
 
 @Component({
   selector: 'app-libro-mayor',
   standalone: true,
-  imports: [
-    DatePipe,
-    FormsModule,
-    ReactiveFormsModule
-  ],
+    imports: [
+        DatePipe,
+        FormsModule,
+        ReactiveFormsModule,
+        FaIconComponent
+    ],
   templateUrl: './libro-mayor.component.html',
   styleUrl: './libro-mayor.component.css'
 })
 export class LibroMayorComponent implements OnInit {
-  movimientos: MovimientoContableLibroMayor[] = []; // Cambia el tipo de MovimientoContable a AsientoContableLibroMayor
+  cuentaAsientos: CuentaAsiento[] = [];
   cuentas: Cuenta[] = [];
+  saldoCuenta: number = 0;
   filtroForm: FormGroup;
-  saldoAcumulativo: number[] = [];
   nombreCuentaSeleccionada: string = '';
   busquedaRealizada: boolean = false;
 
@@ -49,24 +50,38 @@ export class LibroMayorComponent implements OnInit {
 
   cargarCuentas(): void {
     this.cuentaService.getCuentas().subscribe(cuentas => {
-      this.cuentas = this.flattenCuentas(cuentas);
+      // Filtrar cuentas activas antes de procesarlas
+      const cuentasActivas = cuentas.filter(cuenta => cuenta.activa);
+      this.cuentas = this.flattenCuentas(cuentasActivas);
     });
   }
 
   flattenCuentas(cuentas: Cuenta[]): Cuenta[] {
-    let result: Cuenta[] = [];
+    const result: Cuenta[] = [];
 
-    cuentas.forEach(cuenta => {
-      result.push(cuenta);
-      if (cuenta.subCuentas && cuenta.subCuentas.length > 0) {
-        result = result.concat(this.flattenCuentas(cuenta.subCuentas));
+    const agregarCuentaUnica = (cuenta: Cuenta) => {
+      if (!result.some(c => c.id === cuenta.id)) {
+        result.push(cuenta);
       }
-    });
+    };
 
+    const procesarCuentas = (cuentas: Cuenta[]) => {
+      cuentas.forEach(cuenta => {
+        agregarCuentaUnica(cuenta);
+
+        // Continuar procesando las subCuentas activas
+        if (cuenta.subCuentas && cuenta.subCuentas.length > 0) {
+          const subCuentasActivas = cuenta.subCuentas.filter(subCuenta => subCuenta.activa);
+          procesarCuentas(subCuentasActivas);
+        }
+      });
+    };
+
+    procesarCuentas(cuentas);
     return result;
   }
 
-  buscarMovimientos(): void {
+  buscarCuentaAsientos(): void {
     const { cuentaId, fechaInicio, fechaFin } = this.filtroForm.value;
 
     if (!cuentaId || !fechaInicio || !fechaFin) {
@@ -78,48 +93,41 @@ export class LibroMayorComponent implements OnInit {
 
     this.cuentaService.getCuentaById(parseInt(cuentaId, 10)).subscribe(cuenta => {
       this.nombreCuentaSeleccionada = cuenta ? cuenta.nombre : 'Cuenta Desconocida';
+      this.saldoCuenta = cuenta.saldoActual;
 
-      this.reportesService.getLibroMayor(cuentaId, fechaInicio, fechaFin)
-        .subscribe((data: MovimientoContableLibroMayor[]) => {
-          this.movimientos = data;
-          if (this.movimientos.length === 0) {
-            this.saldoAcumulativo = [cuenta.saldo];
-          } else {
-            this.calcularSaldoAcumulativo();
-          }
+      // Convertir las fechas a formato ISO si son válidas
+      const fechaInicioISO = new Date(fechaInicio).toISOString();
+      const fechaFinISO = new Date(fechaFin).toISOString();
+
+      this.reportesService.getLibroMayor(cuentaId, fechaInicioISO, fechaFinISO)
+        .subscribe((data: CuentaAsiento[]) => {
+          this.cuentaAsientos = data;
         }, error => {
           console.error('Error fetching movements:', error);
         });
     });
   }
 
-  calcularSaldoAcumulativo(): void {
-    let saldo = this.obtenerSaldoInicial();
-    this.saldoAcumulativo = [saldo];
-
-    this.movimientos.forEach(movimiento => {
-      if (['+A', '-P', 'R-'].includes(movimiento.tipoMovimiento)) {
-        saldo += movimiento.monto;
-      } else {
-        saldo -= movimiento.monto;
-      }
-      this.saldoAcumulativo.push(saldo);
-    });
-  }
-
-  obtenerSaldoInicial(): number {
-    const cuentaSeleccionada = this.cuentas.find(cuenta => cuenta.id === parseInt(this.filtroForm.value.cuentaId, 10));
-    return cuentaSeleccionada ? cuentaSeleccionada.saldo : 0;
-  }
-
   onSearch(): void {
-    this.buscarMovimientos();
+    this.buscarCuentaAsientos();
   }
 
   clearFilters(): void {
     this.filtroForm.reset();
-    this.movimientos = [];
-    this.saldoAcumulativo = [];
+    this.cuentaAsientos = [];
+  }
+
+  calcularSaldoInicial(): number {
+    if (!this.cuentaAsientos || this.cuentaAsientos.length === 0) {
+      return 0; // O algún valor por defecto
+    }
+
+    const primerAsiento = this.cuentaAsientos[0];
+    if (primerAsiento.debe > 0) {
+      return primerAsiento.saldo - primerAsiento.debe;
+    } else {
+      return primerAsiento.saldo + primerAsiento.haber;
+    }
   }
 
   imprimirLibroMayor(): void {
@@ -141,25 +149,35 @@ export class LibroMayorComponent implements OnInit {
     doc.text(`Cuenta: ${this.nombreCuentaSeleccionada} | Periodo: ${fechaInicioTexto} - ${fechaFinTexto}`, 14, 35);
 
     const columns = ['Fecha', 'Operación', 'Debe', 'Haber', 'Saldo'];
-    const saldoInicial = this.obtenerSaldoInicial();
+    let saldoInicial = 0;
+    let saldoFinal = 0;
+
     const rows = [];
 
-    // Agregar fila de saldo inicial
-    rows.push(['', 'Saldo inicial', '', '', saldoInicial]);
+    // Si no hay cuentaAsientos, usar saldoCuenta como saldo inicial y final
+    if (this.cuentaAsientos.length === 0) {
+      saldoInicial = saldoFinal = this.saldoCuenta;
+      rows.push(['', 'Saldo inicial', '', '', saldoInicial]);
+      rows.push(['', 'Saldo final', '', '', saldoFinal]);
+    } else {
+      // Si hay cuentaAsientos, calcular los saldos
+      saldoInicial = this.calcularSaldoInicial();
+      rows.push(['', 'Saldo inicial', '', '', saldoInicial]);
 
-    this.movimientos.forEach((movimiento, index) => {
-      const fecha = movimiento.fecha ? agregarUnDia(movimiento.fecha) : ''; // Aquí aplicamos agregarUnDia
-      const descripcion = `${movimiento.descripcion} (${movimiento.tipoMovimiento})`;
-      const debe = ['+A', '-P', 'R-'].includes(movimiento.tipoMovimiento) ? movimiento.monto : '';
-      const haber = ['-A', '+P', 'R+'].includes(movimiento.tipoMovimiento) ? movimiento.monto : '';
-      const saldo = this.saldoAcumulativo[index + 1]; // Siguiente saldo después del movimiento
+      this.cuentaAsientos.forEach((cuentaAsiento) => {
+        const fecha = cuentaAsiento.asiento.fecha ? agregarUnDia(cuentaAsiento.asiento.fecha) : '';
+        const descripcion = `${cuentaAsiento.cuenta.nombre}`;
+        const debe = cuentaAsiento.debe === 0 ? '' : cuentaAsiento.debe;
+        const haber = cuentaAsiento.haber === 0 ? '' : cuentaAsiento.haber;
+        const saldo = cuentaAsiento.saldo;
 
-      rows.push([fecha, descripcion, debe, haber, saldo]);
-    });
+        rows.push([fecha, descripcion, debe, haber, saldo]);
+      });
 
-    // Agregar fila de saldo final
-    const saldoFinal = this.saldoAcumulativo[this.saldoAcumulativo.length - 1];
-    rows.push(['', 'Saldo final', '', '', saldoFinal]);
+      // Agregar fila de saldo final si hay cuentaAsientos
+      saldoFinal = this.cuentaAsientos.at(-1)?.saldo ?? saldoInicial; // Si no hay último asiento, usar saldoInicial
+      rows.push(['', 'Saldo final', '', '', saldoFinal]);
+    }
 
     autoTable(doc, {
       head: [columns],
@@ -173,4 +191,8 @@ export class LibroMayorComponent implements OnInit {
 
     doc.save('libro_mayor.pdf');
   }
+
+    protected readonly faMagnifyingGlass = faMagnifyingGlass;
+  protected readonly faEraser = faEraser;
+    protected readonly faDownload = faDownload;
 }

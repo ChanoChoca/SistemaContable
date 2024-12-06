@@ -1,9 +1,70 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap'); /* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+h1, h2, h3, h4, h5, h6, p, button, a, input, strong, label {
+  font-family: 'Rubik', sans-serif;
+}
+
+strong, h1, h2 {
+  font-weight: 700;
+}
+
+h3, h4, h5, h6 {
+  font-weight: 400;
+}
+
+p, button, input, a {
+  font-weight: 300;
+}
+
+h1 {
+  font-size: 70px;
+}
+
+h2 {
+  font-size: 40px;
+}
+
+h6, p {
+  font-size: 16px;
+}
+
+h1, h2, h6, p, label, span {
+  color: white;
+}
+
+h6 {
+  line-height: 18.96px;
+}
+
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
+}
+
+body {
+  background: #E9C46A;
+}
+
+.color-turquesa {
+  color: #2A9D8F !important;
+}
+
+.background-naranja {
+  background: #F4A261 !important;
+}
+
+.background-oscuro {
+  background: #264653 !important;
+}
+
+main {
+  height: 100%;
+  padding: 64px 40px;
 }
 
 h1, h2, h3 {
@@ -20,17 +81,51 @@ label, input, button, option, li, select, p, tr, td, a{
 
 .btn-pseudoclase {
   background-color: #fff;
-  color: #01200F;
-  border: 2px solid #01200F;
+  color: #264653;
+  border: 2px solid #264653;
   transition: 0.3s ease;
-  padding: 1rem;
+  padding: 12px 24px;
+  border-radius: 8px;
 }
 
 .btn-pseudoclase:hover {
   color: #ffffff !important;
-  background-color: #01200F !important;
+  background-color: #264653 !important;
+}
+
+#close:hover {
+  background: #2A9D8F !important;
+  >:hover {
+    color: #264653 !important;
+  }
 }
 
 a {
   text-decoration: none;
+}
+
+table > thead > tr > th:first-child, table > thead > tr:first-child {
+  border-top-left-radius: 8px;
+}
+
+table > thead > tr > th:last-child, table > thead > tr:last-child {
+  border-top-right-radius: 8px;
+}
+
+
+th {
+  padding: 8px;
+  border: 1px solid #8C8C8C;
+  background-color: #E76F51;
+  color: #fff
+}
+
+tr {
+  background-color: #F4A261;
+  color: #fff;
+}
+
+td {
+  padding: 8px;
+  border: 1px solid #8C8C8C;
 }

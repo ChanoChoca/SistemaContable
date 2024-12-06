@@ -31,34 +31,26 @@ public class SecurityConfiguration {
         CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
         requestHandler.setCsrfRequestAttributeName(null);
         http.authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/api/asientos-contables").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/asientos-contables/{id}").permitAll()
+//                        .requestMatchers(HttpMethod.POST, "/api/asientos-contables").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/asientos-contables/ultima-fecha").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/asientos-contables").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/asientos-contables/{id}").permitAll()
+//                        .requestMatchers(HttpMethod.DELETE, "/api/asientos-contables/{id}").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/api/movimientos-contables").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/movimientos-contables/{id}").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/movimientos-contables").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/movimientos-contables/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cuenta-asiento/libro-diario-sin-paginado").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cuenta-asiento/libro-diario").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cuenta-asiento/libro-mayor").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cuenta-asiento/exists-cuenta/{cuentaId}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cuenta-asiento/exists-asiento/{asientoId}").permitAll()
 
-//                        .requestMatchers(HttpMethod.OPTIONS, "/api/cuentas").permitAll()
-//                        .requestMatchers(HttpMethod.POST, "/api/cuentas").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cuentas/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cuentas/codigo/{codigo}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cuentas").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/cuentas/{id}").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/cuentas/{id}").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/cuentas/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cuentas/tree").permitAll()
+//                        .requestMatchers(HttpMethod.PUT, "/api/cuentas/{id}").permitAll()
+//                        .requestMatchers(HttpMethod.DELETE, "/api/cuentas/{id}").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/auth/get-authenticated-user").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
-
-
-
-//                        .requestMatchers("/api/auth/**").permitAll()
-//                        .requestMatchers("/api/cuentas/**").permitAll()
-//                        .requestMatchers("/api/clientes/**").permitAll()
-//                        .requestMatchers("/api/asientos-contables/**").permitAll()
-//                        .requestMatchers("/api/movimientos-contables/**").permitAll()
+//                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "assets/*").permitAll()
                         .anyRequest()

@@ -1,39 +1,43 @@
-<div class="libro-mayor-container">
-  <h2>Libro Mayor</h2>
+<main class="text-center">
+  <h1>Libro Mayor</h1>
 
   <!-- Formulario de filtro -->
-  <form [formGroup]="filtroForm" (ngSubmit)="onSearch()">
+  <form [formGroup]="filtroForm" (ngSubmit)="onSearch()" class="inline-flex flex-col gap-5 text-left my-10">
     <div class="form-group">
       <label for="cuentaId">Cuenta:</label>
-      <select id="cuentaId" formControlName="cuentaId">
+      <select id="cuentaId" formControlName="cuentaId" class="px-1 py-2 rounded-lg">
         <option value="">Seleccione una cuenta</option>
         @for (cuenta of cuentas; track cuenta) {
           <option [value]="cuenta.id">{{cuenta.nombre}}</option>
         }
       </select>
     </div>
-    <div class="form-group separador">
-      <label for="fechaInicio">Fecha Inicio:</label>
-      <input type="date" id="fechaInicio" formControlName="fechaInicio" />
+    <div>
+      <label for="fechaInicio" class="mr-1">Fecha Inicio:</label>
+      <input type="date" id="fechaInicio" formControlName="fechaInicio" class="px-1 py-2 rounded-lg" />
     </div>
-    <div class="form-group separador">
-      <label for="fechaFin">Fecha Fin:</label>
-      <input type="date" id="fechaFin" formControlName="fechaFin" />
+    <div>
+      <label for="fechaFin" class="mr-5">Fecha Fin:</label>
+      <input type="date" id="fechaFin" formControlName="fechaFin" class="px-1 py-2 rounded-lg" />
     </div>
-    <div class="separador">
-      <button type="submit" class="btn btn-primary btn-pseudoclase">Buscar</button>
-      <button type="button" class="btn btn-secondary btn-pseudoclase" (click)="clearFilters()">Limpiar</button>
+    <div class="text-center flex gap-3">
+      <div style="text-align: -webkit-center">
+        <button type="submit" class="btn-pseudoclase my-10 flex gap-3 items-center">Buscar<fa-icon [icon]="faMagnifyingGlass" size="2x"/></button>
+      </div>
+      <div style="text-align: -webkit-center">
+        <button type="button" class="btn-pseudoclase my-10 flex gap-3 items-center" (click)="clearFilters()">Limpiar<fa-icon [icon]="faEraser" size="2x"/></button>
+      </div>
     </div>
   </form>
 
-  @if (nombreCuentaSeleccionada) {
-    <p>Cuenta seleccionada: {{ nombreCuentaSeleccionada }}</p>
-  }
+<!--  @if (nombreCuentaSeleccionada) {-->
+<!--    <h2 class="mb-5">Resultados para {{ nombreCuentaSeleccionada }}</h2>-->
+<!--  }-->
 
   <!-- Tabla de asientos -->
-  @if (movimientos.length > 0) {
-    <div>
-      <table class="asiento-table separador">
+  @if (cuentaAsientos.length > 0) {
+    <div class="before-table">
+      <table class="w-full">
         <thead>
         <tr>
           <th>Fecha</th>
@@ -49,22 +53,20 @@
           <td>Saldo inicial</td>
           <td></td>
           <td></td>
-          <td>{{ saldoAcumulativo[0] }}</td>
+          <td>{{ calcularSaldoInicial() }}</td>
         </tr>
-          @for (movimiento of movimientos; track movimiento; let i = $index) {
+          @for (cuentaAsiento of cuentaAsientos; track cuentaAsientos) {
             <tr>
-              <td>{{ movimiento.fecha | date: 'dd/MM/yyyy' }}</td>
-              <td>{{movimiento.descripcion}} ({{movimiento.tipoMovimiento}})</td>
-
-              @if (['+A', '-P', 'R-'].includes(movimiento.tipoMovimiento)) {
-                <td>{{movimiento.monto}}</td>
+              <td>{{ cuentaAsiento.asiento.fecha | date: 'dd/MM/yyyy' }}</td>
+              <td>{{cuentaAsiento.cuenta.nombre}}</td>
+              @if (cuentaAsiento.debe > 0) {
+                <td>{{cuentaAsiento.debe}}</td>
                 <td></td>
               } @else {
                 <td></td>
-                <td>{{movimiento.monto}}</td>
+                <td>{{cuentaAsiento.haber}}</td>
               }
-
-              <td>{{ saldoAcumulativo[i + 1] }}</td>
+              <td>{{cuentaAsiento.saldo}}</td>
             </tr>
           }
         <tr>
@@ -72,15 +74,18 @@
           <td>Saldo final</td>
           <td></td>
           <td></td>
-          <td>{{ saldoAcumulativo[saldoAcumulativo.length - 1] }}</td>
+          <td>{{cuentaAsientos.at(-1)?.saldo}}</td>
         </tr>
         </tbody>
       </table>
 
-      <button type="button" class="btn btn-success btn-pseudoclase separador" (click)="imprimirLibroMayor()">Imprimir Libro Mayor</button>
+      <!-- Botón para imprimir -->
+      <div style="text-align: -webkit-center">
+        <button type="button" class="btn-pseudoclase my-10 flex gap-3 items-center" (click)="imprimirLibroMayor()">Imprimir Libro Mayor<fa-icon [icon]="faDownload"  size="2x"/></button>
+      </div>
     </div>
   } @else if (busquedaRealizada) {
-    <div class="no-asientos">
+    <div class="before-table">
       <table>
         <thead>
         <tr>
@@ -97,19 +102,21 @@
           <td>Saldo inicial</td>
           <td></td>
           <td></td>
-          <td>{{ saldoAcumulativo[0] }}</td>
+<!--          Obtener saldo de la cuenta (no de cuentaAsiento) -->
+          <td>{{saldoCuenta}}</td>
         </tr>
         <tr>
           <td></td>
           <td>Saldo final</td>
           <td></td>
           <td></td>
-          <td>{{ saldoAcumulativo[0] }}</td>
+<!--          Lo mismo aquí debajo-->
+          <td>{{saldoCuenta}}</td>
         </tr>
         </tbody>
       </table>
     </div>
 
-    <button type="button" class="btn btn-success btn-pseudoclase separador" (click)="imprimirLibroMayor()">Imprimir Libro Mayor</button>
+    <button type="button" class="btn btn-success btn-pseudoclase mt-10" (click)="imprimirLibroMayor()">Imprimir Libro Mayor</button>
   }
-</div>
+</main>

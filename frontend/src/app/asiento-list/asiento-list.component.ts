@@ -1,10 +1,11 @@
 import {Component, inject, OnInit} from '@angular/core';
 import { AsientoService } from '../services/asiento.service';
-import {DatePipe} from "@angular/common";
+import {DatePipe, NgClass} from "@angular/common";
 import {RouterLink} from "@angular/router";
 import {AuthService} from "../core/auth/auth.service";
 import {Page} from "../models/page.model";
-import {AsientoContableGet} from "../models/asiento.model";
+import {Asiento} from "../models/asiento.model";
+import {CuentaAsientoService} from "../services/cuenta-asiento.service";
 // import { ToastrService } from 'ngx-toastr'; // Para notificaciones, opcional
 
 @Component({
@@ -12,13 +13,14 @@ import {AsientoContableGet} from "../models/asiento.model";
   standalone: true,
   imports: [
     DatePipe,
-    RouterLink
+    RouterLink,
+    NgClass
   ],
   templateUrl: './asiento-list.component.html',
   styleUrl: './asiento-list.component.css'
 })
 export class AsientoListComponent implements OnInit {
-  asientos: AsientoContableGet[] = [];  // Cambiado a AsientoContableGet
+  asientos: Asiento[] = [];
   currentPage: number = 0;
   pageSize: number = 3;
   totalPages: number = 0;
@@ -26,17 +28,16 @@ export class AsientoListComponent implements OnInit {
 
   constructor(
     private asientoService: AsientoService,
-    // private toastr: ToastrService  // Opcional para notificaciones
+    private cuentaAsientoService: CuentaAsientoService
   ) {}
 
   ngOnInit(): void {
     this.getAsientos();
   }
 
-  // Cargar todos los asientos
   getAsientos(): void {
     this.asientoService.getAllAsientos(this.currentPage, this.pageSize)
-      .subscribe((data: Page<AsientoContableGet>) => {  // Cambiado a AsientoContableGet
+      .subscribe((data: any) => {
         this.asientos = data.content;
         this.totalPages = data.page.totalPages;
       });
@@ -47,15 +48,20 @@ export class AsientoListComponent implements OnInit {
     this.getAsientos();
   }
 
-  // Eliminar asiento por ID
-  deleteAsiento(asiento: AsientoContableGet): void {  // Cambiado a AsientoContableGet
-    if (confirm("¿Estás seguro de que deseas eliminar este asiento?")) {
-      this.asientoService.deleteAsiento(asiento.id!);
-      alert('Asiento eliminado exitosamente');
-    }
-  }
-
-  hasRoleAdmin(): boolean {
-    return this.authService.hasAnyAuthority("ROL_ADMIN");
+  // Eliminar asiento por ID con validación de CuentaAsiento
+  deleteAsiento(asiento: Asiento): void {
+    // Verificar si el asiento tiene CuentaAsiento asociado
+    this.cuentaAsientoService.checkIfCuentaAsientoExists(asiento.id!)
+      .subscribe((exists: boolean) => {
+        if (exists) {
+          alert('No puedes eliminar este asiento, ya tiene cuentas asociadas.');
+        } else {
+          if (confirm('¿Estás seguro de que deseas eliminar este asiento?')) {
+            this.asientoService.deleteAsiento(asiento.id!);
+            alert('Asiento eliminado exitosamente');
+            this.getAsientos();
+          }
+        }
+      });
   }
 }

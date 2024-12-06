@@ -1,99 +1,94 @@
-<section class="form">
-  <form #cuentaForm="ngForm" (ngSubmit)="onSubmit()" enctype="multipart/form-data">
-    <h1>{{ isEditMode ? 'Modificar' : 'Crear' }} Plan de Cuenta</h1>
+<a href="/cuentas">
+  <div id="close" style="right: 20px; top: 80px; width: 50px; height: 50px" class="absolute background-oscuro content-center text-center rounded-full ease-in duration-300">
+    <fa-icon [icon]="faXmark" size="2x" class="color-turquesa"/>
+  </div>
+</a>
+<main class="text-center">
+  <h1>{{ cuentaId ? 'Editar Cuenta Contable' : 'Crear Cuenta Contable' }}</h1>
 
-    <!-- Campo Nombre -->
+  <form [formGroup]="accountForm" (ngSubmit)="onSubmit()" class="inline-flex flex-col gap-5 text-left my-10">
+    <!-- Nombre -->
     <div>
-      <label for="nombre">Nombre:</label>
-      <input
-        type="text"
-        id="nombre"
-        [(ngModel)]="cuenta.nombre"
-        name="nombre"
-        required
-        #nombreInput="ngModel"
-      />
-      @if (nombreInput.invalid && nombreInput.touched) {
-        <div class="error">El nombre es requerido.</div>
+      <label for="nombre">Nombre de la Cuenta:</label>
+      <input id="nombre" type="text" formControlName="nombre" placeholder="Ej: Caja" class="px-1 py-2 rounded-lg"/>
+      @if (accountForm.get('nombre')?.invalid && accountForm.get('nombre')?.touched) {
+        <p class="text-center">
+          El nombre es requerido y debe tener al menos 3 caracteres.
+        </p>
       }
     </div>
 
-    <!-- Campo Código -->
-    <div class="separador">
-      <label for="codigo">Código:</label>
-      <input
-        type="text"
-        id="codigo"
-        [(ngModel)]="cuenta.codigo"
-        name="codigo"
-        required
-        #codigoInput="ngModel"
-      />
-      @if (codigoInput.invalid && codigoInput.touched) {
-        <div class="error">El código es requerido.</div>
+    <!-- Código -->
+    <div>
+      <label for="codigo" class="mr-24">Código:</label>
+      <input id="codigo" type="text" formControlName="codigo" placeholder="Ej: 101"  class="px-1 py-2 rounded-lg"/>
+      @if (accountForm.get('codigo')?.invalid && accountForm.get('codigo')?.touched) {
+        <p class="text-center">
+          El código debe ser un número válido.
+        </p>
+      }
+      @if (isCodigoExistente) {
+        <p class="text-center">
+          El código ya está registrado. Por favor, elija otro.
+        </p>
       }
     </div>
 
-    <!-- Campo Saldo -->
-    <div class="separador">
-      <label for="saldo">Saldo:</label>
-      <input
-        type="number"
-        id="saldo"
-        [(ngModel)]="cuenta.saldo"
-        name="saldo"
-        required
-        #saldoInput="ngModel"
-      />
-      @if (saldoInput.invalid && saldoInput.touched) {
-        <div class="error">El saldo es requerido.</div>
-      }
+    <!-- Tipo -->
+    <div>
+      <label for="tipo" class="mr-10">Tipo de Cuenta:</label>
+      <input id="tipo" type="text" formControlName="tipo" placeholder="Ej: Activo" class="px-1 py-2 rounded-lg"/>
     </div>
 
-    <!-- Selector de Cuenta Padre -->
-    <div class="separador">
-      <label for="cuentaPadre">Cuenta Padre:</label>
-      <select
-        id="cuentaPadre"
-        [(ngModel)]="cuenta.cuentaPadre"
-        name="cuentaPadre"
-        #cuentaPadreSelect="ngModel"
-      >
+    <!-- Cuenta Padre -->
+    <div>
+      <label for="cuentaPadre" class="mr-12">Cuenta Padre:</label>
+      <select id="cuentaPadre" formControlName="cuentaPadre" class="px-1 py-2 rounded-lg">
         <option [ngValue]="null">Ninguna</option>
         @for (cuenta of cuentas; track cuenta) {
-          <option [ngValue]="cuenta">
-            {{ cuenta.nombre }}
-          </option>
+          <ng-container>
+            <option [ngValue]="cuenta">{{ cuenta.nombre }}</option>
+          </ng-container>
         }
       </select>
+      <!-- Mensajes de error para cuenta padre -->
+      @if (cuentaPadreSaldoInvalido && errorMessage) {
+        <p class="mb-10">{{ errorMessage }}</p>
+      }
     </div>
 
-    <!-- Selector Múltiple para Subcuentas -->
-    <div class="separador">
-      <label for="subCuentas">Subcuentas:</label>
-      <select
-        id="subCuentas"
-        [(ngModel)]="cuenta.subCuentas"
-        name="subCuentas"
-        multiple
-        #subCuentasSelect="ngModel"
-      >
-        <option [ngValue]="null">Ninguna</option>
-        @for (cuenta of cuentas; track cuenta) {
-          <option [ngValue]="cuenta">
-            {{ cuenta.nombre }}
-          </option>
-        }
-      </select>
+
+    <!-- Saldo Actual -->
+    <div>
+      <label for="saldoActual" class="mr-14">Saldo Actual:</label>
+      <input id="saldoActual" type="number" formControlName="saldoActual" min="0" [disabled]="isSaldoDisabled" class="px-1 py-2 rounded-lg"/>
+      @if (isSaldoDisabled) {
+        <p class="text-center">
+          No se puede modificar el saldo porque esta cuenta tiene subcuentas.
+        </p>
+      }
     </div>
+
+
+    @if (cuentaId) {
+      <!-- Activa (Checkbox) -->
+      <div class="text-center">
+        <label for="activa">Cuenta Activa:</label>
+        <input id="activa" type="checkbox" formControlName="activa" [checked]="true"/>
+      </div>
+    }
 
     <!-- Botón de Envío -->
-    <button
-      class="separador btn-pseudoclase"
-      type="submit"
-      [disabled]="cuentaForm.invalid"
-    >
-      {{ isEditMode ? 'Actualizar' : 'Crear' }} Plan de Cuenta
+    <button type="submit" class="btn-pseudoclase" [disabled]="accountForm.invalid || isCodigoExistente || cuentaPadreSaldoInvalido">
+      {{ cuentaId ? 'Modificar cuenta' : 'Crear cuenta' }}
     </button>
   </form>
-</section>
+
+  <!-- Mensajes de Éxito o Error -->
+  @if (successMessage) {
+    <p class="mt-10">{{ successMessage }}</p>
+  }
+  @if (errorMessage) {
+    <p class="mt-10">{{ errorMessage }}</p>
+  }
+</main>

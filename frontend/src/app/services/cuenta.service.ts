@@ -46,8 +46,11 @@ export class CuentaService {
     return this.http.get<Page<Cuenta>>(`${environment.API_URL}/cuentas/tree`, {params});
   }
 
+  // getCuentas(): Observable<Cuenta[]> {
+  //   return this.http.get<Cuenta[]>(`${environment.API_URL}/cuentas/cuentas-sin-paginado`);
+  // }
   getCuentas(): Observable<Cuenta[]> {
-    return this.http.get<Cuenta[]>(`${environment.API_URL}/cuentas/cuentas-sin-paginado`);
+    return this.http.get<Cuenta[]>(`${environment.API_URL}/cuentas`);
   }
 
   // Obtener cuenta por ID
@@ -81,5 +84,16 @@ export class CuentaService {
   // Método para eliminar cuenta por ID
   deleteCuenta(id: number): Observable<void> {
     return this.http.delete<void>(`${environment.API_URL}/cuentas/${id}`);
+  }
+
+  deactivateCuenta(cuentaId: number): Observable<Cuenta> {
+    return this.http.patch<Cuenta>(`${environment.API_URL}/cuentas/${cuentaId}/deactivate`, {
+      activa: false
+    });
+  }
+
+  actualizarSaldoCuenta(idCuenta: number, nuevoSaldo: number): Observable<Cuenta> {
+    console.log(nuevoSaldo);
+    return this.http.put<Cuenta>(`${environment.API_URL}/cuentas/${idCuenta}/actualizar`, { saldo: nuevoSaldo });
   }
 }

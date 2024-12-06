@@ -6,6 +6,8 @@ import {AuthService} from "../core/auth/auth.service";
 import {Page} from "../models/page.model";
 import {RouterLink} from "@angular/router";
 import {CuentaItemComponent} from "./cuenta-item/cuenta-item.component";
+import {CuentaAsientoService} from "../services/cuenta-asiento.service";
+import {NgClass} from "@angular/common";
 // import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -14,7 +16,8 @@ import {CuentaItemComponent} from "./cuenta-item/cuenta-item.component";
   imports: [
     FormsModule,
     RouterLink,
-    CuentaItemComponent
+    CuentaItemComponent,
+    NgClass
   ],
   templateUrl: './cuenta-list.component.html',
   styleUrl: './cuenta-list.component.css'
@@ -28,7 +31,7 @@ export class CuentaListComponent implements OnInit {
   authService = inject(AuthService);
 
   constructor(
-    private cuentaService: CuentaService,
+    private cuentaService: CuentaService
     // private toastr: ToastrService  // Opcional para notificaciones
   ) {}
 
@@ -57,13 +60,5 @@ export class CuentaListComponent implements OnInit {
   clearFilters(): void {
     this.nombre = '';
     this.onSearch();
-  }
-
-  deleteCuenta(cuenta: Cuenta): void {
-    this.cuentaService.deleteCuenta(cuenta.id!);
-  }
-
-  hasRoleAdmin(): boolean {
-    return this.authService.hasAnyAuthority("ROL_ADMIN");
   }
 }

@@ -96,8 +96,6 @@ export class AuthService {
       .some((authority: string) => authorities.includes(authority));
   }
 
-
-  // Método para obtener solo el email del usuario autenticado
   // Método para obtener solo el email del usuario autenticado
   getAuthenticatedUserEmail(): string {
     const userState = this.fetchUser$().value;

@@ -1,25 +1,8 @@
-.libro-mayor-container {
-  padding: 20px;
-  background-color: #9EC5AB;
-  height: 100vh;
+tr {
+  display: grid !important;
+  grid-template-columns: 2fr 2fr 2fr 2fr 3fr !important;
 }
 
-table {
-  width: 100%;
-}
-tr {
-  display: grid;
-  grid-template-columns: 2fr 2fr 2fr 2fr 3fr;
-  background-color: #32746D;
-  color: #fff;
-}
-td, th, thead, tbody {
-  padding: 8px;
-  border: 1px solid #8C8C8C;
-}
-th {
-  background-color: #2c5e77;
-}
-.separador {
-  margin-top: 3rem;
+.before-table {
+  text-align: -webkit-center;
 }

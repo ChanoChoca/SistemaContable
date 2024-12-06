@@ -1,35 +1,35 @@
-<div class="asiento-list-container">
-  <h2>Lista de Asientos Contables</h2>
+<main class="text-center">
+  <h1 class="mb-10">Lista de Asientos Contables</h1>
 
   @if (authService.hasRoleAdmin()) {
-    <div class="boton separador">
+    <div class="mb-10">
       <button class="btn btn-secondary btn-padding btn-pseudoclase" [routerLink]="['/asiento/new']">Crear Asiento Contable</button>
     </div>
   }
 
   @if (asientos.length > 0) {
     <!-- Tabla de asientos -->
-    <table class="asiento-table separador">
+    <table class="w-full">
       <thead>
-      <tr>
+      <tr [ngClass]="authService.hasRoleAdmin() ? 'admin-columns' : 'user-columns'">
         <th>ID</th>
         <th>Fecha</th>
         @if (authService.hasRoleAdmin()) {
-        <th>Usuario</th>
+          <th>Usuario</th>
           <th>Acciones</th>
         }
       </tr>
       </thead>
       <tbody>
         @for (asiento of asientos; track asiento) {
-          <tr>
+          <tr [ngClass]="authService.hasRoleAdmin() ? 'admin-columns' : 'user-columns'">
             <td>{{ asiento.id }}</td>
             <td>{{ asiento.fecha | date: 'dd/MM/yyyy' }}</td>
             @if (authService.hasRoleAdmin()) {
-            <td>{{ asiento.usuarioEmail }}</td>
+              <td>{{ asiento.usuarioEmail }}</td>
               <td>
                 <button class="delete-button btn-pseudoclase" (click)="deleteAsiento(asiento)">Eliminar</button>
-                <button class="btn btn-secondary btn-pseudoclase" [routerLink]="['/asiento/edit', asiento.id]">Modificar</button>
+                <!--                <button class="btn btn-secondary btn-pseudoclase" [routerLink]="['/asiento/edit', asiento.id]">Modificar</button>-->
               </td>
             }
           </tr>
@@ -37,14 +37,14 @@
       </tbody>
     </table>
 
-    <div class="pagination-container" style="text-align: center">
-      <button class="btn btn-secondary btn-pseudoclase" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
-      <span class="page-indicator">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
-      <button class="btn btn-secondary btn-pseudoclase" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage + 1 >= totalPages">Siguiente</button>
+    <div class="flex gap-3 justify-center items-center mt-10">
+      <button class="btn-pseudoclase" (click)="onPageChange(currentPage - 1)" [hidden]="currentPage === 0">Anterior</button>
+      <span>Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+      <button class="btn-pseudoclase" (click)="onPageChange(currentPage + 1)" [hidden]="currentPage + 1 === totalPages">Siguiente</button>
     </div>
   } @else {
-    <div class="no-asientos">
+    <div class="mt-10">
       <p>No hay asientos contables disponibles.</p>
     </div>
   }
-</div>
+</main>

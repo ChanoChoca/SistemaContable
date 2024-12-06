@@ -1,8 +1,40 @@
-<nav>
-  <ul>
-    <li><a routerLink="/libro-diario">Libro Diario</a></li>
-    <li><a routerLink="/libro-mayor">Libro Mayor</a></li>
-    <li><a routerLink="/cuentas">Cuentas</a></li>
-    <li><a routerLink="/asientos">Asientos Contables</a></li>
-  </ul>
-</nav>
+<main>
+  <section class="grid sm:grid-cols-2	md:grid-cols-3 lg:grid-cols-4 gap-3 text-center text-white">
+    <a routerLink="/libro-diario" class="card">
+      <div class="content-center w-full md:w-auto relative">
+        <img src="assets/images/diario.jpg" alt="" class="rounded-t-lg">
+        <div class="rounded-b-lg background-naranja">
+          <h2 class="py-3 color-turquesa">Libro Diario</h2>
+          <fa-icon [icon]="faChevronUp" class="icon" size="2x"></fa-icon>
+        </div>
+      </div>
+    </a>
+    <a routerLink="/libro-mayor" class="card">
+      <div class="content-center w-full md:w-auto relative">
+        <img src="assets/images/mayor.jpg" alt="" class="rounded-t-lg">
+        <div class="rounded-b-lg background-naranja">
+          <h2 class="py-3 color-turquesa">Libro Mayor</h2>
+          <fa-icon [icon]="faChevronUp" class="icon" size="2x"></fa-icon>
+        </div>
+      </div>
+    </a>
+    <a routerLink="/cuentas" class="card">
+      <div class="content-center w-full md:w-auto relative">
+        <img src="assets/images/cuenta.jpg" alt="" class="rounded-t-lg">
+        <div class="rounded-b-lg background-naranja">
+          <h2 class="py-3 color-turquesa">Cuenta Contable</h2>
+          <fa-icon [icon]="faChevronUp" class="icon" size="2x"></fa-icon>
+        </div>
+      </div>
+    </a>
+    <a routerLink="/asientos" class="card">
+      <div class="content-center w-full md:w-auto relative">
+        <img src="assets/images/asiento.jpg" alt="" class="rounded-t-lg">
+        <div class="rounded-b-lg background-naranja">
+          <h2 class="py-3 color-turquesa">Asiento Contable</h2>
+          <fa-icon [icon]="faChevronUp" class="icon" size="2x"></fa-icon>
+        </div>
+      </div>
+    </a>
+  </section>
+</main>

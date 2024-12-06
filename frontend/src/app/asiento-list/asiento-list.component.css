@@ -1,28 +1,7 @@
-.asiento-list-container {
-  padding: 20px;
-  background-color: #9EC5AB;
-  height: 100vh;
-}
-.asiento-table {
-  width: 100%;
-  border-collapse: collapse;
+.admin-columns {
+  grid-template-columns: 1fr 2fr 3fr 2fr; /* Para admin: incluye columna de usuario y acciones */
 }
 
-tr {
-  display: grid;
-  grid-template-columns: 1fr 2fr 3fr 2fr;
-  background-color: #32746D;
-  color: #fff;
-}
-td, th {
-  padding: 8px;
-  border: 1px solid #8C8C8C;
-}
-
-th {
-  background-color: #2c5e77;
-}
-
-.separador {
-  margin-bottom: 3rem;
+.user-columns {
+  grid-template-columns: 1fr 2fr; /* Para usuario normal: excluye columnas adicionales */
 }

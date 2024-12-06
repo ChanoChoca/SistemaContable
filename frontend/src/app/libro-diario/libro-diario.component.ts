@@ -1,33 +1,37 @@
 import {Component, OnInit} from '@angular/core';
-import { ReportesService } from '../services/reportes.service';
-import { AsientoContable } from '../models/asiento.model';
+import {ReportesService} from '../services/reportes.service';
 import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {DatePipe} from "@angular/common";
 import {Page} from "../models/page.model";
 import {jsPDF} from "jspdf";
 import autoTable from "jspdf-autotable";
-import {AsientoContableLibroMayor} from "../models/asiento.model";
-
-// Fecha, movimiento, debe, haber, saldo
-// Puede haber más de un movimiento por fecha
+import {CuentaAsiento} from "../models/cuenta-asiento.model";
+import {FaIconComponent} from "@fortawesome/angular-fontawesome";
+import {faDownload} from "@fortawesome/free-solid-svg-icons/faDownload";
+import {faMagnifyingGlass} from "@fortawesome/free-solid-svg-icons/faMagnifyingGlass";
+import {faEraser} from "@fortawesome/free-solid-svg-icons/faEraser";
 
 @Component({
   selector: 'app-libro-diario',
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    DatePipe
+    DatePipe,
+    FaIconComponent
   ],
   templateUrl: './libro-diario.component.html',
   styleUrl: './libro-diario.component.css'
 })
 export class LibroDiarioComponent implements OnInit {
-  asientos: AsientoContableLibroMayor[] = [];
-  fechaInicio: string = '2000-01-01';
-  fechaFin: string = '2024-11-01';
+  cuentaAsientos: CuentaAsiento[] = [];
+  fechaInicio: Date = new Date('2024-12-01T21:00:00');
+  fechaFin: Date = new Date('2024-09-01T21:00:00');
   currentPage: number = 0;
   pageSize: number = 3;
   totalPages: number = 0;
+
+  totalDebe: number = 0;
+  totalHaber: number = 0;
 
   filtroForm: FormGroup;
 
@@ -36,131 +40,161 @@ export class LibroDiarioComponent implements OnInit {
     private fb: FormBuilder
   ) {
     this.filtroForm = this.fb.group({
-      fechaInicio: [''],
-      fechaFin: ['']
+      fechaInicio: [this.fechaInicio],
+      fechaFin: [this.fechaFin]
     });
   }
 
   ngOnInit(): void {
-    this.buscarAsientos();
-  }
-
-  // Método para determinar el tipo de asiento
-  determinarTipoAsiento(asiento: AsientoContable | AsientoContableLibroMayor): string {
-    // Convertimos a AsientoContable si es AsientoContableLibroMayor
-    const movimientos = 'movimientos' in asiento ? asiento.movimientos : [];
-
-    const tieneMovimientoModificativo = movimientos.some(mov => ['R+', 'R-'].includes(mov.tipoMovimiento));
-    return tieneMovimientoModificativo ? 'Modificativa' : 'Permutativa';
-  }
-
-  // Método para calcular el total de la columna "Debe"
-  calcularTotalDebe(): number {
-    return this.asientos.flatMap(asiento => asiento.movimientos)
-      .filter(movimiento => ['+A', '-P', 'R-'].includes(movimiento.tipoMovimiento))
-      .reduce((total, movimiento) => total + movimiento.monto, 0);
-  }
-
-  // Método para calcular el total de la columna "Haber"
-  calcularTotalHaber(): number {
-    return this.asientos.flatMap(asiento => asiento.movimientos)
-      .filter(movimiento => ['-A', '+P', 'R+'].includes(movimiento.tipoMovimiento))
-      .reduce((total, movimiento) => total + movimiento.monto, 0);
+    this.buscarCuentaAsientos();
   }
 
   // Buscar asientos contables entre dos fechas
-  buscarAsientos(): void {
-    const { fechaInicio, fechaFin } = this.filtroForm.value;
-    this.reportesService.getLibroDiario(this.currentPage, this.pageSize, fechaInicio, fechaFin)
-      .subscribe((data: Page<AsientoContableLibroMayor>) => {
-        this.asientos = data.content;
+  buscarCuentaAsientos(): void {
+    let { fechaInicio, fechaFin } = this.filtroForm.value;
+
+    if (fechaInicio) {
+      fechaInicio = new Date(fechaInicio);
+    }
+    if (fechaFin) {
+      fechaFin = new Date(fechaFin);
+    }
+
+    if (isNaN(fechaInicio.getTime()) || isNaN(fechaFin.getTime())) {
+      console.error('Fechas inválidas');
+      return;
+    }
+
+    this.reportesService.getLibroDiario(this.currentPage, this.pageSize, fechaInicio.toISOString(), fechaFin.toISOString())
+      .subscribe((data: Page<CuentaAsiento>) => {
+        // Filtrar cuentas activas
+        this.cuentaAsientos = data.content.filter(cuentaAsiento => cuentaAsiento.cuenta.activa);
         this.totalPages = data.page.totalPages;
+      });
+
+    this.reportesService.getAllAsientos(fechaInicio.toISOString(), fechaFin.toISOString())
+      .subscribe((data: CuentaAsiento[]) => {
+        // Filtrar cuentas activas
+        const filteredAsientos = data.filter(cuentaAsiento => cuentaAsiento.cuenta.activa);
+
+        // Calcular totales
+        this.totalDebe = filteredAsientos.reduce((sum, item) => sum + (item.debe || 0), 0);
+        this.totalHaber = filteredAsientos.reduce((sum, item) => sum + (item.haber || 0), 0);
       });
   }
 
   onSearch(): void {
     this.currentPage = 0;
-    this.buscarAsientos();
+    this.buscarCuentaAsientos();
   }
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.buscarAsientos();
+    this.buscarCuentaAsientos();
   }
 
   clearFilters(): void {
     this.filtroForm.reset();
-    this.fechaInicio = '';
-    this.fechaFin = '';
+    this.fechaInicio = new Date();
+    this.fechaFin = new Date();
     this.onSearch();
   }
 
+  // Método para determinar el tipo de asiento
+  determinarTipoAsiento(cuentaAsiento: CuentaAsiento): string {
+    const modificativo = cuentaAsiento.debe > 0 || cuentaAsiento.haber > 0;
+    return modificativo ? 'Modificativa' : 'Permutativa';
+  }
+
+  // Función para imprimir el libro diario
   imprimirLibroDiario(): void {
-    const { fechaInicio, fechaFin } = this.filtroForm.value;
+    let { fechaInicio, fechaFin } = this.filtroForm.value;
 
-    this.reportesService.getAllAsientos(fechaInicio, fechaFin)
-      .subscribe((asientos: AsientoContable[]) => {
-        const doc = new jsPDF();
+    fechaInicio = fechaInicio ? new Date(fechaInicio) : null;
+    fechaFin = fechaFin ? new Date(fechaFin) : null;
 
-        // Agregar un título al documento
-        doc.setFontSize(16);
-        doc.text('Libro Diario', 14, 20);
+    if (!fechaInicio || !fechaFin || isNaN(fechaInicio.getTime()) || isNaN(fechaFin.getTime())) {
+      console.error('Fechas inválidas. Verifique los valores de fecha.');
+      return;
+    }
 
-        const agregarUnDia = (fecha: string | Date): string => {
-          const date = new Date(fecha);
-          date.setDate(date.getDate() + 1); // Aumenta un día a la fecha
-          return date.toLocaleDateString('es-ES'); // Devuelve la fecha con el formato adecuado
-        };
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text('Libro Diario', 14, 20);
 
-        const fechaInicioTexto = fechaInicio ? agregarUnDia(fechaInicio) : 'N/A';
-        const fechaFinTexto = fechaFin ? agregarUnDia(fechaFin) : 'N/A';
+    const agregarUnDia = (fecha: Date): string => {
+      const date = new Date(fecha);
+      date.setDate(date.getDate() + 1);
+      return date.toLocaleDateString('es-ES');
+    };
 
-        // Imprimir la cuenta y el periodo en una sola línea
-        doc.setFontSize(12);
-        doc.text(`Periodo: ${fechaInicioTexto} - ${fechaFinTexto}`, 14, 35);
+    const fechaInicioTexto = agregarUnDia(fechaInicio);
+    const fechaFinTexto = agregarUnDia(fechaFin);
 
-        // Crear el encabezado de la tabla
-        const columns = ['ID', 'Fecha', 'Movimientos', 'Debe', 'Haber', 'Tipo'];
+    doc.setFontSize(12);
+    doc.text(`Periodo: ${fechaInicioTexto} - ${fechaFinTexto}`, 14, 35);
 
-        // Preparar los datos de la tabla
-        const rows = asientos.flatMap(asiento =>
-          asiento.movimientos.map((movimiento, index) => {
-            const fecha = asiento.fecha ? agregarUnDia(asiento.fecha) : '';
+    const columns = ['ID', 'Operación', 'Movimientos', 'Debe', 'Haber', 'Tipo'];
 
-            // Ajustar la descripción para incluir el tipo de movimiento entre paréntesis
-            const descripcion = `${movimiento.descripcion} (${movimiento.tipoMovimiento})`;
+    this.reportesService.getAllAsientos(fechaInicio.toISOString(), fechaFin.toISOString())
+      .subscribe({
+        next: (asientos: CuentaAsiento[]) => {
+          // Filtrar cuentas activas
+          const filteredAsientos = asientos.filter(cuentaAsiento => cuentaAsiento.cuenta.activa);
 
-            const debe = ['+A', '-P', 'R-'].includes(movimiento.tipoMovimiento) ? movimiento.monto : '';
-            const haber = ['-A', '+P', 'R+'].includes(movimiento.tipoMovimiento) ? movimiento.monto : '';
+          const rows = [];
+          let lastId: number | null = null;
+          let lastFecha: string | null = null;
+          let lastTipoAsiento: string | null = null;
 
-            // Determinar el tipo de asiento (solo en la primera fila del asiento)
-            const tipoAsiento = index === 0 ? this.determinarTipoAsiento(asiento) : '';
+          filteredAsientos.forEach(cuentaAsiento => {
+            const asiento = cuentaAsiento.asiento;
+            const fecha = asiento.fecha ? agregarUnDia(new Date(asiento.fecha)) : '';
+            const tipoAsiento = this.determinarTipoAsiento(cuentaAsiento);
 
-            return index === 0
-              ? [asiento.id || '', fecha, descripcion, debe, haber, tipoAsiento]
-              : ['', '', descripcion, debe, haber, ''];
-          })
-        );
+            // Mostrar fecha y tipo cuando el ID cambia
+            const id = asiento.id !== lastId ? asiento.id : '';
+            const fechaMostrada = asiento.id !== lastId ? fecha : '';  // Mostrar fecha solo cuando el ID cambia
+            const tipoAsientoMostrado = asiento.id !== lastId ? tipoAsiento : '';  // Mostrar tipo solo cuando el ID cambia
 
-        // Agregar las sumas al final del PDF
-        const totalDebe = this.calcularTotalDebe();
-        const totalHaber = this.calcularTotalHaber();
+            rows.push([
+              id,
+              fechaMostrada,
+              cuentaAsiento.cuenta.nombre,
+              cuentaAsiento.debe,
+              cuentaAsiento.haber,
+              tipoAsientoMostrado
+            ]);
 
-        rows.push(['', '', '', totalDebe, totalHaber, '']);
+            // Actualizamos las variables para el siguiente asiento
+            lastId = asiento.id!;
+            lastFecha = fecha;
+            lastTipoAsiento = tipoAsiento;
+          });
 
-        // Usar autotable para agregar la tabla al PDF
-        autoTable(doc, {
-          head: [columns],
-          body: rows,
-          startY: 45,
-          theme: 'grid',
-          headStyles: { fillColor: [22, 160, 133] },
-          styles: { cellPadding: 3, fontSize: 10 },
-          margin: { top: 10 },
-        });
+          // Agregar totales
+          rows.push(['', '', '', this.totalDebe, this.totalHaber, '', '']);
 
-        // Guardar el documento como un archivo PDF
-        doc.save('libro_diario.pdf');
+          // Generar la tabla
+          autoTable(doc, {
+            head: [columns],
+            body: rows,
+            startY: 45,
+            theme: 'grid',
+            headStyles: { fillColor: [22, 160, 133] },
+            styles: { cellPadding: 3, fontSize: 10 },
+            margin: { top: 10 },
+          });
+
+          doc.save('libro_diario.pdf');
+        },
+        error: (err) => {
+          console.error('Error al obtener los asientos para el PDF:', err);
+        }
       });
   }
+
+  protected readonly faDownload = faDownload;
+  protected readonly faMagnifyingGlass = faMagnifyingGlass;
+  protected readonly faEraser = faEraser;
 }

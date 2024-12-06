@@ -17,14 +17,14 @@ public class Cuenta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String nombre;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String codigo;
 
-    @Column(precision = 19, scale = 2)
-    private BigDecimal saldo;
+    @Column(nullable = false)
+    private String tipo;
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
@@ -34,11 +34,11 @@ public class Cuenta {
     @OneToMany(mappedBy = "cuentaPadre", fetch = FetchType.EAGER)
     private List<Cuenta> subCuentas = new ArrayList<>();
 
-    @Column(nullable = false)
-    private boolean activa;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal saldoActual;
 
     @Column(nullable = false)
-    private boolean eliminada;
+    private boolean activa;
 
     public Cuenta() {
     }
@@ -67,19 +67,18 @@ public class Cuenta {
         this.codigo = codigo;
     }
 
-    public BigDecimal getSaldo() {
-        return saldo;
+    public String getTipo() {
+        return tipo;
     }
 
-    public void setSaldo(BigDecimal saldo) {
-        this.saldo = saldo;
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
     }
 
     public Cuenta getCuentaPadre() {
         return cuentaPadre;
     }
 
-    @PostConstruct
     public void setCuentaPadre(Cuenta cuentaPadre) {
         this.cuentaPadre = cuentaPadre;
     }
@@ -92,8 +91,20 @@ public class Cuenta {
         this.subCuentas = subCuentas;
     }
 
-    public void addSubCuenta(Cuenta subCuenta) {
-        this.getSubCuentas().add(subCuenta);
+    public BigDecimal getSaldoActual() {
+        return saldoActual;
+    }
+
+    public void setSaldoActual(BigDecimal saldoActual) {
+        this.saldoActual = saldoActual;
+    }
+
+    public void addSubCuenta(Cuenta cuenta) {
+        this.getSubCuentas().add(cuenta);
+    }
+
+    public void removeSubCuenta(Cuenta cuenta) {
+        this.getSubCuentas().remove(cuenta);
     }
 
     public boolean isActiva() {
@@ -102,17 +113,5 @@ public class Cuenta {
 
     public void setActiva(boolean activa) {
         this.activa = activa;
-    }
-
-    public boolean isEliminada() {
-        return eliminada;
-    }
-
-    public void setEliminada(boolean eliminada) {
-        this.eliminada = eliminada;
-    }
-
-    public void removeSubCuenta(Cuenta cuenta) {
-        this.getSubCuentas().remove(cuenta);
     }
 }

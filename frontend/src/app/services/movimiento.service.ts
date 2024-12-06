@@ -1,6 +1,6 @@
 import {computed, inject, Injectable, signal, WritableSignal} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
-import {MovimientoContable} from "../models/movimiento.model";
+import {MovimientoContable} from "../models/cuenta-asiento.model";
 import {State} from "../core/model/state.model";
 import {Observable} from "rxjs";
 import {environment} from "../../environments/environment";

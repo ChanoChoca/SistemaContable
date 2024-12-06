@@ -14,15 +14,15 @@ public class NewCuentaDTO {
 
     private String codigo;
 
-    private BigDecimal saldo;
+    private String tipo;
 
     private Cuenta cuentaPadre;
 
     private List<Cuenta> subCuentas = new ArrayList<>();
 
-    private boolean activa;
+    private BigDecimal saldoActual;
 
-    private boolean eliminada;
+    private boolean activa;
 
     public NewCuentaDTO() {
     }
@@ -51,12 +51,12 @@ public class NewCuentaDTO {
         this.codigo = codigo;
     }
 
-    public BigDecimal getSaldo() {
-        return saldo;
+    public String getTipo() {
+        return tipo;
     }
 
-    public void setSaldo(BigDecimal saldo) {
-        this.saldo = saldo;
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
     }
 
     public Cuenta getCuentaPadre() {
@@ -75,19 +75,19 @@ public class NewCuentaDTO {
         this.subCuentas = subCuentas;
     }
 
+    public BigDecimal getSaldoActual() {
+        return saldoActual;
+    }
+
+    public void setSaldoActual(BigDecimal saldoActual) {
+        this.saldoActual = saldoActual;
+    }
+
     public boolean isActiva() {
         return activa;
     }
 
     public void setActiva(boolean activa) {
         this.activa = activa;
-    }
-
-    public boolean isEliminada() {
-        return eliminada;
-    }
-
-    public void setEliminada(boolean eliminada) {
-        this.eliminada = eliminada;
     }
 }

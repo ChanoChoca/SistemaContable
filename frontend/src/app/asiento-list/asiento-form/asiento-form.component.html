@@ -1,102 +1,91 @@
-<div class="asiento-form">
-  <form (ngSubmit)="onSubmit()" enctype="multipart/form-data" #asientoForm="ngForm">
-    <!-- Campos de descripción y fecha -->
-    <div class="divisor">
-      <div>
-        <h1>{{ isEditMode ? 'Modificar Asiento Contable' : 'Crear Asiento Contable' }}</h1>
-        <div>
-          <label for="fecha">Fecha:</label>
-          <input
-            type="datetime-local"
-            id="fecha"
-            [(ngModel)]="asiento.fecha"
-            name="fecha"
-            required
-            #fechaField="ngModel"
-          />
-          @if (fechaField.invalid && fechaField.touched) {
-            <div class="error">
-              La fecha es obligatoria.
-            </div>
-          }
-        </div>
+<a href="/asientos">
+  <div id="close" style="right: 20px; top: 80px; width: 50px; height: 50px" class="absolute background-oscuro content-center text-center rounded-full ease-in duration-300">
+    <fa-icon [icon]="faXmark" size="2x" class="color-turquesa"/>
+  </div>
+</a>
+<main class="text-center">
+  <h1 class="mb-10">{{ asientoId ? 'Editar Asiento Contable' : 'Crear Asiento Contable' }}</h1>
 
-        <!-- Formulario de agregar movimiento -->
-        <div>
-          <h2>Agregar Movimiento Contable</h2>
-          <div class="separador">
-            <label for="descripcion">Nombre:</label>
-            <input
-              type="text"
-              id="descripcion"
-              [(ngModel)]="nuevoMovimiento.descripcion"
-              name="descripcion"
-            />
+  <form [formGroup]="asientoForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-10">
+    <div class="flex flex-col gap-5">
+      <h2>Datos de asiento</h2>
+      <div>
+        <label for="fecha">Fecha:</label>
+        <input type="date" id="fecha" formControlName="fecha" [min]="fechaMinima" [max]="fechaMaxima" class="px-1 py-2 rounded-lg"/>
+        @if (asientoForm.get('fecha')?.hasError('fechaInvalida') && asientoForm.get('fecha')?.touched) {
+          <div>
+            <p>La fecha debe estar entre {{ fechaMinima }} y {{ fechaMaxima }}.</p>
           </div>
-          <div class="separador">
-            <label for="cuenta">Cuenta:</label>
-            <select id="cuenta" [(ngModel)]="nuevoMovimiento.cuenta" name="cuenta">
-              <option [ngValue]="null">Seleccione una cuenta (opcional)</option>
-              @for (cuenta of cuentas; track cuenta) {
-                <option [ngValue]="cuenta">
-                  {{ cuenta.nombre }}
+        }
+      </div>
+
+      <div>
+        <label for="descripcion" class="mr-1">Descripción:</label>
+        <input type="text" id="descripcion" formControlName="descripcion" class="px-1 py-2 rounded-lg"/>
+        @if (asientoForm.get('descripcion')?.invalid && asientoForm.get('descripcion')?.touched) {
+          <div>
+            <p>La descripción es obligatoria.</p>
+          </div>
+        }
+      </div>
+
+      <h2 class="text-center">Cuentas (opcional)</h2>
+
+      <div class="flex gap-3 justify-center">
+        <button type="button" class="btn-pseudoclase" (click)="agregarCuenta()">Agregar Cuenta</button>
+        <button type="submit" class="btn-pseudoclase" [disabled]="isFormInvalid()">Registrar Asiento</button>
+      </div>
+    </div>
+
+    <div formArrayName="cuentas" class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4	 gap-5">
+      @for (cuenta of cuentas.controls; track cuenta; let i = $index) {
+        <div [formGroupName]="i" class="flex flex-col gap-5">
+          <div>
+            <label for="idCuenta">Cuenta:</label>
+            <select id="idCuenta" formControlName="idCuenta" class="px-1 py-2 rounded-lg">
+              @for (cuentaDisponible of cuentasDisponibles; track cuentaDisponible) {
+                <option [value]="cuentaDisponible.id">
+                  {{ cuentaDisponible.nombre }}
                 </option>
               }
             </select>
           </div>
-          <div class="separador">
-            <label for="monto">Monto:</label>
-            <input type="number" id="monto" [(ngModel)]="nuevoMovimiento.monto" name="monto" />
+
+          <div class="form-group">
+            <label for="debe" class="mr-3">Debe:</label>
+            <input type="number" id="debe" formControlName="debe" min="0" step="any" pattern="\d*" class="px-1 py-2 rounded-lg"/>
           </div>
-          <div class="separador">
-            <label for="tipoMovimiento">Tipo de Movimiento:</label>
-            <select id="tipoMovimiento" [(ngModel)]="nuevoMovimiento.tipoMovimiento" name="tipoMovimiento" required #tipoMovimientoField="ngModel">
-              <option [ngValue]="null" disabled>Seleccione un tipo</option>
-              <option [ngValue]="'+A'">Activo Aumenta (+A)</option>
-              <option [ngValue]="'-A'">Activo Disminuye (-A)</option>
-              <option [ngValue]="'+P'">Pasivo Aumenta (+P)</option>
-              <option [ngValue]="'-P'">Pasivo Disminuye (-P)</option>
-              <option [ngValue]="'R+'">Resultado Positivo (R+)</option>
-              <option [ngValue]="'R-'">Resultado Negativo (R-)</option>
-              <option [ngValue]="'PN'">Patrimonio Neto (PN)</option>
-            </select>
-            @if (tipoMovimientoField.invalid && tipoMovimientoField.touched) {
-              <div class="error">
-                Debe seleccionar un tipo de movimiento.
-              </div>
-            }
+
+          <div class="form-group">
+            <label for="haber" class="mr-1">Haber:</label>
+            <input type="number" id="haber" formControlName="haber" min="0" step="any" pattern="\d*" class="px-1 py-2 rounded-lg"/>
           </div>
-          <div>
-            <button class="separador btn-pseudoclase" type="button" (click)="agregarMovimiento()">
-              Agregar Movimiento
-            </button>
+
+          <div class="text-center">
+            <button type="button" class="btn-pseudoclase" (click)="eliminarCuenta(i)">Eliminar</button>
           </div>
+
+          <!-- Validación: No debe ser debe = 0 y haber = 0 -->
+          @if (cuenta.get('debe')?.value === 0 && cuenta.get('haber')?.value === 0) {
+            <div class="text-center">
+              <p>Debe ingresar un valor en "Debe" o "Haber".</p>
+            </div>
+          }
+
+          @if (saldosExcedidos[cuenta.value.idCuenta]) {
+            <div class="text-center">
+              <p>El saldo de la cuenta es insuficiente para las operaciones de debe y haber.</p>
+            </div>
+          }
+
+          <!-- Validación: No puede tener valores en "Debe" y "Haber" al mismo tiempo -->
+          @if (cuenta.get('debe')?.value !== 0 && cuenta.get('haber')?.value !== 0) {
+            <div class="text-center">
+              <p>No se puede introducir datos en el debe y en el haber.</p>
+            </div>
+          }
         </div>
-
-        <button
-          class="separador btn-pseudoclase"
-          type="submit"
-          [disabled]="asiento.movimientos.length === 0 || asientoForm.invalid">
-          {{ isEditMode ? 'Actualizar' : 'Crear' }} Asiento Contable
-        </button>
-
-      </div>
-      <div>
-        <!-- Lista de movimientos -->
-        @if (asiento.movimientos.length > 0) {
-          <div class="separador">
-            <h3>Movimientos Agregados</h3>
-            <ul>
-              @for (movimiento of asiento.movimientos; track movimiento; let i = $index) {
-                <li>
-                  {{ movimiento.descripcion }} - {{ movimiento.monto }} - {{ getTipoMovimientoDescripcion(movimiento.tipoMovimiento) }}
-                  <button type="button" (click)="eliminarMovimiento(i)">Eliminar</button>
-                </li>
-              }
-            </ul>
-          </div>
-        }
-      </div>
+      }
     </div>
   </form>
-</div>
+</main>

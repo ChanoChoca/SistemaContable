@@ -1,49 +1,49 @@
-<div class="cuenta-list-container">
-  <h2>Lista de Cuentas</h2>
+<main class="text-center">
+  <h1>Lista de Cuentas</h1>
 
   @if (authService.hasRoleAdmin()) {
-    <div class="boton separador">
+    <div class="mt-10">
       <button class="btn btn-secondary btn-padding btn-pseudoclase" [routerLink]="['/cuenta/new']">Crear plan de cuenta</button>
     </div>
   }
 
-  <div class="filter-container separador">
-    <input type="text" class="form-control" [(ngModel)]="nombre" placeholder="Filtrar por nombre" />
-    <button class="btn btn-secondary btn-pseudoclase" (click)="onSearch()">Buscar</button>
-    <button class="btn btn-secondary btn-pseudoclase" (click)="clearFilters()">Limpiar Filtros</button>
+  <div class="inline-flex my-10">
+    <input type="text" class="rounded-l-lg" [(ngModel)]="nombre" placeholder="Filtrar por nombre" />
+    <button class="btn-pseudoclase !rounded-none" (click)="onSearch()">Buscar</button>
+    <button class="btn-pseudoclase !rounded-l-none" (click)="clearFilters()">Limpiar Filtros</button>
   </div>
 
 
   @if (cuentas.length > 0) {
-    <table class="cuenta-table separador">
+    <table class="w-full">
       <thead>
-      <tr>
-        <th>ID</th>
-        <th>Nombre</th>
+      <tr class="grid" [ngClass]="authService.hasRoleAdmin() ? 'admin-columns' : 'user-columns'">
         <th>Código</th>
+        <th>Nombre</th>
         <th>Saldo</th>
+        <th>Estado</th>
         @if (authService.hasRoleAdmin()) {
           <th>Acciones</th>
         }
       </tr>
       </thead>
       <tbody>
-      @for (cuenta of cuentas; track cuenta) {
-        <ng-container>
-          <app-cuenta-item [cuenta]="cuenta" [level]="0"></app-cuenta-item>
-        </ng-container>
-      }
+        @for (cuenta of cuentas; track cuenta) {
+          <ng-container>
+            <app-cuenta-item [cuenta]="cuenta" [level]="0"></app-cuenta-item>
+          </ng-container>
+        }
       </tbody>
     </table>
 
-    <div class="pagination-container separador">
-      <button class="btn btn-secondary btn-pseudoclase" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">Anterior</button>
-      <span class="page-indicator">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
-      <button class="btn btn-secondary btn-pseudoclase" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage + 1 >= totalPages">Siguiente</button>
+    <div class="flex gap-3 justify-center items-center mt-10">
+      <button class="btn-pseudoclase" (click)="onPageChange(currentPage - 1)" [hidden]="currentPage === 0">Anterior</button>
+      <span>Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+      <button class="btn-pseudoclase" (click)="onPageChange(currentPage + 1)" [hidden]="currentPage + 1 === totalPages">Siguiente</button>
     </div>
   } @else {
-    <div class="no-accounts">
+    <div class="mt-10">
       <p>No hay cuentas disponibles.</p>
     </div>
   }
-</div>
+</main>

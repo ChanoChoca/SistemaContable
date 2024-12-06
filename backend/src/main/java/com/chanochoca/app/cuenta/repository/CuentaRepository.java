@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CuentaRepository extends CrudRepository<Cuenta, Long> {
     List<Cuenta> findByNombre(String nombre);
@@ -15,4 +16,6 @@ public interface CuentaRepository extends CrudRepository<Cuenta, Long> {
     List<Cuenta> findByCuentaPadreIsNull();
 
     Page<Cuenta> findByNombreContainingAndCuentaPadreIsNull(String nombre, Pageable pageable);
+
+    Optional<Cuenta> findByCodigo(String codigo);
 }
