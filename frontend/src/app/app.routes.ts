@@ -7,6 +7,11 @@ import {CuentaFormComponent} from "./cuenta-list/cuenta-form/cuenta-form.compone
 import {AsientoListComponent} from "./asiento-list/asiento-list.component";
 import {LibroDiarioComponent} from "./libro-diario/libro-diario.component";
 import {LibroMayorComponent} from "./libro-mayor/libro-mayor.component";
+import {VentasComponent} from "./ventas/ventas.component";
+import {RegistroVentaComponent} from "./ventas/registro-venta/registro-venta.component";
+import {ArticulosFormComponent} from "./articulos/articulos-form/articulos-form.component";
+import {ArticulosListaComponent} from "./articulos/articulos.component";
+import {CosteoComponent} from "./costeo/costeo.component";
 
 export const routes: Routes = [
   {
@@ -60,6 +65,34 @@ export const routes: Routes = [
   {
     path: 'libro-mayor',
     component: LibroMayorComponent
+  },
+  {
+    path: 'articulos',
+    component: ArticulosListaComponent
+  },
+  {
+    path: 'articulo/new',
+    component: ArticulosFormComponent,
+    canActivate: [authorityRouteAccess],
+    data: {
+      authorities: ["ROL_ADMIN"] // Requiere el rol de admin para acceder
+    }
+  },
+  {
+    path: 'ventas',
+    component: VentasComponent
+  },
+  {
+    path: 'venta/new',
+    component: RegistroVentaComponent,
+    canActivate: [authorityRouteAccess],
+    data: {
+      authorities: ["ROL_ADMIN"] // Requiere el rol de admin para acceder
+    }
+  },
+  {
+    path: 'costeo',
+    component: CosteoComponent
   },
   {
     path: '**',

@@ -1,0 +1,33 @@
+<a href="/articulos">
+  <div id="close" style="right: 20px; top: 80px; width: 50px; height: 50px" class="absolute background-oscuro content-center text-center rounded-full ease-in duration-300">
+    <fa-icon [icon]="faXmark" size="2x" class="color-turquesa"/>
+  </div>
+</a>
+<main class="text-center">
+  <h1 class="mb-10">{{ articuloToEdit ? 'Editar' : 'Nuevo' }} Artículo</h1>
+  <form [formGroup]="articuloForm" (ngSubmit)="saveArticulo()" class="inline-flex flex-col gap-5">
+    <div class="form-group">
+      <label for="nombre">Nombre:</label>
+      <input id="nombre" formControlName="nombre" class="px-1 py-2 rounded-lg" type="text" placeholder="Nombre del artículo"/>
+    </div>
+
+    <div class="form-group">
+      <label for="precioUnitario">Precio Unitario:</label>
+      <input [min]="0" id="precioUnitario" formControlName="precioUnitario" class="px-1 py-2 rounded-lg" type="number" placeholder="Precio Unitario"/>
+    </div>
+
+    <div class="form-group">
+      <label for="stockActual">Stock Actual:</label>
+      <input [min]="0" id="stockActual" formControlName="stockActual" class="px-1 py-2 rounded-lg" type="number" placeholder="Stock Actual"
+      />
+    </div>
+
+    <div class="flex gap-5 mt-10">
+      <button type="submit" class="btn-pseudoclase" [disabled]="articuloForm.invalid">
+        {{ articuloToEdit ? 'Guardar Cambios' : 'Guardar Artículo' }}
+      </button>
+
+      <button type="button" class="btn-pseudoclase" (click)="cancel()">Cancelar</button>
+    </div>
+  </form>
+</main>

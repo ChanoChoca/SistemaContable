@@ -1,0 +1,38 @@
+<main class="text-center">
+  <h1>Manejo de Método de Costeo</h1>
+
+  <div>
+    <label for="metodoCosteo">Seleccionar Método de Costeo: </label>
+    <select id="metodoCosteo" [(ngModel)]="metodoCosteo" (change)="calcularCosto()">
+      <option value="FIFO">FIFO (Primero en Entrar, Primero en Salir)</option>
+      <option value="LIFO">LIFO (Último en Entrar, Primero en Salir)</option>
+      <option value="Promedio">Costo Promedio</option>
+    </select>
+  </div>
+
+  <div>
+    <h3>Costo Calculado: {{ costoCalculado }}</h3>
+  </div>
+
+  <div>
+    <h4>Ventas:</h4>
+    <ul>
+      @for (venta of ventas; track venta) {
+        <li>
+          N° Factura: {{ venta.nroFactura }} | Cliente: {{ venta.clienteEmail }} | Monto: {{ venta.monto }}
+        </li>
+      }
+    </ul>
+  </div>
+
+  <div>
+    <h4>Artículos:</h4>
+    <ul>
+      @for (articulo of articulos; track articulo) {
+        <li>
+          {{ articulo.nombre }} | Precio: {{ articulo.precioUnitario }} | Stock: {{ articulo.stockActual }}
+        </li>
+      }
+    </ul>
+  </div>
+</main>

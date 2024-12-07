@@ -1,0 +1,29 @@
+<main style="text-align: -webkit-center">
+
+  <h1>Lista de Artículos</h1>
+
+  @if (authService.hasRoleAdmin()) {
+    <div class="mt-10">
+      <button class="btn-pseudoclase" [routerLink]="['/articulo/new']">Crear artículo</button>
+    </div>
+  }
+
+  <table class="table table-bordered mt-10">
+    <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Precio Unitario</th>
+      <th>Stock Actual</th>
+    </tr>
+    </thead>
+    <tbody>
+      @for (articulo of articulos; track articulo) {
+        <tr>
+          <td>{{ articulo.nombre }}</td>
+          <td>{{ articulo.precioUnitario}}</td>
+          <td>{{ articulo.stockActual }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</main>
