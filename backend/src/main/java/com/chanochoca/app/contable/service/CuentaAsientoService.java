@@ -19,4 +19,8 @@ public interface CuentaAsientoService {
     List<CuentaAsiento> libroDiarioSinPaginado(Date fechaInicio, Date fechaFin);
 
     List<CuentaAsiento> libroMayor(Long cuentaId, Date fechaInicio, Date fechaFin);
+
+    List<CuentaAsiento> obtenerVentasPorMes(String mes);
+
+    List<CuentaAsiento> findByMonth(String mes);
 }

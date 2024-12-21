@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnInit } from '@angular/core';
+import {Component, effect, inject, OnDestroy, OnInit} from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ToolbarModule } from 'primeng/toolbar';
@@ -9,6 +9,8 @@ import { AuthService } from '../../core/auth/auth.service';
 import { User } from '../../core/model/user.model';
 import { AvatarComponent } from "./avatar/avatar.component";
 import { ToastService } from '../toast.service';
+import {faDownload} from "@fortawesome/free-solid-svg-icons/faDownload";
+import {faXmark} from "@fortawesome/free-solid-svg-icons/faXmark";
 
 @Component({
   selector: 'app-navbar',
@@ -24,81 +26,104 @@ import { ToastService } from '../toast.service';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'] // Asegúrate de que el archivo CSS esté referenciado aquí
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
+  isAsideMenuOpen = false; // Controla la visibilidad del menú desplegable
+  isDesktopView = window.innerWidth > 1024; // Detecta si es vista de escritorio
+  private readonly resizeObserver: (() => void) | undefined;
 
   // Servicios inyectados
   authService = inject(AuthService);
   toastService = inject(ToastService);
 
-  // Métodos para el inicio y cierre de sesión
   login = () => this.authService.login();
   logout = () => this.authService.logout();
 
-  // Menú de navegación actual
   currentMenuItems: MenuItem[] | undefined = [];
-
-  // Usuario conectado
   connectedUser: User = { email: this.authService.notConnected };
 
   constructor() {
-    // Observa los cambios en el estado de autenticación del usuario
     effect(() => {
       if (this.authService.fetchUser().status === "OK") {
         this.connectedUser = this.authService.fetchUser().value!;
         this.currentMenuItems = this.fetchMenu();
       }
     });
+
+    // Escucha el evento de cambio de tamaño de pantalla
+    this.resizeObserver = this.listenToResize();
   }
 
   ngOnInit(): void {
-    // Fetch el estado de autenticación al iniciar
     this.authService.fetch(false);
   }
 
-  // Construye el menú basado en el estado de autenticación
+  ngOnDestroy(): void {
+    if (this.resizeObserver) {
+      this.resizeObserver();
+    }
+  }
+
+  toggleAsideMenu(): void {
+    this.isAsideMenuOpen = !this.isAsideMenuOpen;
+  }
+
   private fetchMenu(): MenuItem[] {
-    if (this.authService.isAuthenticated()) {
+    if (this.authService.hasRoleClient()) {
       return [
-        {
-          label: "Log out",
+        { label: "Mi cuenta",
           style: {
-            backgroundColor: '#c3c3c3',
-            color: 'white',
-            fontWeight: 'bold',
-            padding: '10px 17px',
-            borderRadius: '5px',
-            border: 'none'
+          padding: '12px 24px',
+            borderBottom: '1px solid #e0e0e0',
+            backgroundColor: 'white'
           },
-          command: this.logout
-        }
+          command: () => (window.location.href = "/cliente") },
+        { label: "Log out",
+          style: {
+          padding: '12px 24px',
+            borderBottom: '1px solid #e0e0e0',
+            backgroundColor: 'white'
+          },
+          command: this.logout },
+      ];
+    } else if (this.authService.isAuthenticated()) {
+      return [
+        { label: "Log out",
+          style: {
+          padding: '12px 24px',
+            borderBottom: '1px solid #e0e0e0',
+            backgroundColor: 'white'
+          },
+          command: this.logout },
       ];
     } else {
       return [
-        {
-          label: "Sign up",
+        { label: "Sign up",
           style: {
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            fontWeight: 'bold',
-            padding: '10px 20px',
-            borderRadius: '5px',
-            border: 'none'
+          padding: '12px 24px',
+            borderBottom: '1px solid #e0e0e0',
+            backgroundColor: 'white'
           },
-          command: this.login
-        },
-        {
-          label: "Log in",
+          command: this.login },
+        { label: "Log in",
           style: {
-            backgroundColor: '#008CBA',
-            color: 'white',
-            fontWeight: 'bold',
-            padding: '10px 20px',
-            borderRadius: '5px',
-            border: 'none'
+          padding: '12px 24px',
+            borderBottom: '1px solid #e0e0e0',
+            backgroundColor: 'white'
           },
-          command: this.login
-        }
+          command: this.login },
       ];
     }
   }
+
+  private listenToResize(): () => void {
+    const onResize = () => {
+      this.isDesktopView = window.innerWidth > 1024;
+    };
+    window.addEventListener('resize', onResize);
+    onResize(); // Llama inmediatamente para establecer el estado inicial
+    return () => window.removeEventListener('resize', onResize); // Limpia el evento
+  }
+
+  protected readonly faDownload = faDownload;
+  protected readonly faXmark = faXmark;
 }

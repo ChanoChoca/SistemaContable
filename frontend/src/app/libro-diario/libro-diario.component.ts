@@ -68,6 +68,7 @@ export class LibroDiarioComponent implements OnInit {
     this.reportesService.getLibroDiario(this.currentPage, this.pageSize, fechaInicio.toISOString(), fechaFin.toISOString())
       .subscribe((data: Page<CuentaAsiento>) => {
         // Filtrar cuentas activas
+        //TODO: Quitar filtro de activas, ya que puede variar el monto de debe y haber.
         this.cuentaAsientos = data.content.filter(cuentaAsiento => cuentaAsiento.cuenta.activa);
         this.totalPages = data.page.totalPages;
       });

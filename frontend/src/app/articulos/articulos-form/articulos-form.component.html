@@ -3,12 +3,27 @@
     <fa-icon [icon]="faXmark" size="2x" class="color-turquesa"/>
   </div>
 </a>
+
 <main class="text-center">
   <h1 class="mb-10">{{ articuloToEdit ? 'Editar' : 'Nuevo' }} Artículo</h1>
   <form [formGroup]="articuloForm" (ngSubmit)="saveArticulo()" class="inline-flex flex-col gap-5">
     <div class="form-group">
       <label for="nombre">Nombre:</label>
-      <input id="nombre" formControlName="nombre" class="px-1 py-2 rounded-lg" type="text" placeholder="Nombre del artículo"/>
+      <input
+        id="nombre"
+        formControlName="nombre"
+        class="px-1 py-2 rounded-lg"
+        type="text"
+        placeholder="Nombre del artículo"
+        [readonly]="articuloToEdit !== null" />
+      <!-- Mensaje de error si el nombre ya existe -->
+      @if (articuloToEdit === null && articuloForm.get('nombre')?.hasError('nombreExistente')) {
+        <p>Este nombre ya está en uso. Por favor elige otro.</p>
+      }
+      @if (articuloToEdit !== null) {
+        <p>No se permite modificar el nombre, ya que se trata de una reposición de inventario.</p>
+      }
+
     </div>
 
     <div class="form-group">
@@ -18,12 +33,11 @@
 
     <div class="form-group">
       <label for="stockActual">Stock Actual:</label>
-      <input [min]="0" id="stockActual" formControlName="stockActual" class="px-1 py-2 rounded-lg" type="number" placeholder="Stock Actual"
-      />
+      <input [min]="1" id="stockActual" formControlName="stockActual" class="px-1 py-2 rounded-lg" type="number" placeholder="Stock Actual"/>
     </div>
 
-    <div class="flex gap-5 mt-10">
-      <button type="submit" class="btn-pseudoclase" [disabled]="articuloForm.invalid">
+    <div class="flex justify-center gap-5 mt-10">
+      <button type="submit" class="btn-pseudoclase" [disabled]="articuloForm.invalid || articuloExists">
         {{ articuloToEdit ? 'Guardar Cambios' : 'Guardar Artículo' }}
       </button>
 

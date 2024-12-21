@@ -60,6 +60,24 @@ public class CuentaAsientoController {
         return ResponseEntity.ok(cuentaAsientos);
     }
 
+    @GetMapping("/ventas")
+    public ResponseEntity<List<CuentaAsiento>> ventas(@RequestParam("mes") String mes) {
+        System.out.println("Procesando pa");
+        // Llamar al servicio para obtener las ventas para el mes
+        List<CuentaAsiento> cuentaAsientos = cuentaAsientoService.obtenerVentasPorMes(mes);
+
+        if (cuentaAsientos.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(cuentaAsientos);
+    }
+
+    @GetMapping("/costeo")
+    public List<CuentaAsiento> getArticulosVentasByMonth(@RequestParam String mes) {
+        System.out.println("Consultando a...");
+        return cuentaAsientoService.findByMonth(mes);
+    }
+
     @PostMapping
     public ResponseEntity<List<CuentaAsiento>> crearCuentasAsientos(@RequestBody AsientoCuentasDTO asientoConCuentasDTO) {
         // Llamar al servicio para procesar tanto el asiento como las cuentas afectadas

@@ -1,38 +1,110 @@
 <main class="text-center">
-  <h1>Manejo de Método de Costeo</h1>
+  <h1>Métodos de Costeo</h1>
 
-  <div>
-    <label for="metodoCosteo">Seleccionar Método de Costeo: </label>
-    <select id="metodoCosteo" [(ngModel)]="metodoCosteo" (change)="calcularCosto()">
-      <option value="FIFO">FIFO (Primero en Entrar, Primero en Salir)</option>
-      <option value="LIFO">LIFO (Último en Entrar, Primero en Salir)</option>
-      <option value="Promedio">Costo Promedio</option>
+  <!-- Formulario para seleccionar mes -->
+  <form [formGroup]="filtroForm" (ngSubmit)="onSearch()" class="inline-flex flex-col gap-5 text-left my-10">
+    <div>
+      <label for="metodoCosteo">Seleccionar Método de Costeo: </label>
+      <select id="metodoCosteo" formControlName="metodoCosteo" class="px-1 py-2 rounded-lg">
+        @for (metodoCosteo of metodosCosteo; track metodoCosteo) {
+          <option [value]="metodoCosteo">{{ metodoCosteo }}</option>
+        }
+      </select>
+    </div>
+
+    <label for="mes">Mes:</label>
+    <select formControlName="mes" id="mes" class="px-1 py-2 rounded-lg">
+      @for (mes of meses; track mes) {
+        <option [value]="mes">{{ mes }}</option>
+      }
     </select>
-  </div>
 
-  <div>
-    <h3>Costo Calculado: {{ costoCalculado }}</h3>
-  </div>
+    <button type="submit" class="btn-pseudoclase">Consultar</button>
+  </form>
 
-  <div>
-    <h4>Ventas:</h4>
-    <ul>
-      @for (venta of ventas; track venta) {
-        <li>
-          N° Factura: {{ venta.nroFactura }} | Cliente: {{ venta.clienteEmail }} | Monto: {{ venta.monto }}
-        </li>
-      }
-    </ul>
-  </div>
+  <!-- Tabla para mostrar resultados -->
+  @if (articulosVentas.length > 0) {
+    <div>
+      <table class="table table-striped">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cantidad comprada</th>
+          <th>Subtotal</th>
+          <th>ID del Articulo</th>
+          <th>Nombre del Articulo</th>
+          <th>Stock del Articulo</th>
+          <th>Valor de origen</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (articuloVenta of articulosVentas; track articuloVenta) {
+          <tr>
+            <td>{{ articuloVenta.id }}</td>
+            <td>{{ articuloVenta.cantidad }}</td>
+            <td>{{ articuloVenta.subtotal }}</td>
+            <td>{{ articuloVenta.articulo.id }}</td>
+            <td>{{ articuloVenta.articulo.nombre }}</td>
+            <td>{{ articuloVenta.articulo.stockActual }}</td>
+            <td>{{ articuloVenta.articulo.precioUnitario }}</td>
+          </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+  }
 
-  <div>
-    <h4>Artículos:</h4>
-    <ul>
-      @for (articulo of articulos; track articulo) {
-        <li>
-          {{ articulo.nombre }} | Precio: {{ articulo.precioUnitario }} | Stock: {{ articulo.stockActual }}
-        </li>
-      }
-    </ul>
-  </div>
+  @if (cuentaAsientos.length > 0) {
+    <div>
+      <table class="w-full">
+        <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Detalle</th>
+          <th>Debe</th>
+          <th>Haber</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (cuentaAsiento of cuentaAsientos; track cuentaAsiento; let i = $index) {
+            <!-- Mostrar la fecha solo si el asiento actual tiene un id diferente al anterior -->
+            @if (i === 0 || cuentaAsiento.asiento.id !== cuentaAsientos[i - 1].asiento.id) {
+              <tr>
+                <td>{{ cuentaAsiento.asiento.fecha | date: 'dd/MM/yyyy' }}</td>
+                <td>{{ cuentaAsiento.cuenta.nombre }}</td>
+                @if (cuentaAsiento.debe > 0) {
+                  <td>{{cuentaAsiento.debe}}</td>
+                  <td></td>
+                } @else {
+                  <td></td>
+                  <td>{{cuentaAsiento.haber}}</td>
+                }
+              </tr>
+            }
+
+            <!-- Mostrar los movimientos, con valores en Debe y Haber -->
+            @if (i !== 0 && cuentaAsiento.asiento.id === cuentaAsientos[i - 1].asiento.id) {
+              <tr>
+                <td></td>
+                <td>{{ cuentaAsiento.cuenta.nombre }}</td>
+                @if (cuentaAsiento.debe > 0) {
+                  <td>{{cuentaAsiento.debe}}</td>
+                  <td></td>
+                } @else {
+                  <td></td>
+                  <td>{{cuentaAsiento.haber}}</td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (articulosVentas.length === 0) {
+    <div>
+      <p>No se encontraron resultados para el mes seleccionado.</p>
+    </div>
+  }
 </main>

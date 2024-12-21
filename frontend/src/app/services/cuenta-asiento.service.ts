@@ -5,6 +5,7 @@ import {HttpClient} from "@angular/common/http";
 import {environment} from "../../environments/environment";
 import {State} from "../core/model/state.model";
 import {Asiento} from "../models/asiento.model";
+import {ArticulosVentas} from "../models/articulos-ventas";
 
 @Injectable({
   providedIn: 'root'
@@ -39,5 +40,11 @@ export class CuentaAsientoService {
 
   checkCuentaAsientos(cuentaId: number): Observable<boolean> {
     return this.http.get<boolean>(`${environment.API_URL}/cuenta-asiento/exists-cuenta/${cuentaId}`);
+  }
+
+  getCuentaAsientosByMonth(mes: string): Observable<CuentaAsiento[]> {
+    return this.http.get<CuentaAsiento[]>(`${environment.API_URL}/cuenta-asiento/costeo`, {
+      params: { mes }
+    });
   }
 }

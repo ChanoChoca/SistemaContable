@@ -96,6 +96,15 @@ export class AuthService {
       .some((authority: string) => authorities.includes(authority));
   }
 
+  // Método para obtener el usuario autenticado directamente
+  getAuthenticatedUser(): User | null {
+    const userState = this.fetchUser$().value;
+    if (userState && userState.email !== this.notConnected) {
+      return userState;
+    }
+    return null;
+  }
+
   // Método para obtener solo el email del usuario autenticado
   getAuthenticatedUserEmail(): string {
     const userState = this.fetchUser$().value;
@@ -115,5 +124,13 @@ export class AuthService {
 
   hasRoleAdmin(): boolean {
     return this.getUserAuthority().includes('ROL_ADMIN');
+  }
+
+  hasRoleClient(): boolean {
+    return this.getUserAuthority().includes('ROL_CLIENTE');
+  }
+
+  hasRoleEmployee(): boolean {
+    return this.getUserAuthority().includes('ROL_EMPLEADO');
   }
 }

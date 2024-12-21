@@ -2,10 +2,10 @@ import {Ventas} from "./ventas";
 import {Articulos} from "./articulos";
 
 export interface ArticulosVentas {
-  id: number;
+  id?: number;
   cantidad: number;
   subtotal: number;
-  precioVenta: number;  // Nuevo campo
-  venta: Ventas;
+  precioVenta: number;
+  venta?: Ventas;
   articulo: Articulos;
 }

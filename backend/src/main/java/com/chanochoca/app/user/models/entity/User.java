@@ -4,6 +4,7 @@ import com.chanochoca.app.user.models.AbstractAuditingEntity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -28,6 +29,13 @@ public class User extends AbstractAuditingEntity<Long> {
     @Column(name = "email")
     private String email;
 
+    private BigDecimal saldoCuenta;
+
+    @Column(name = "limite")
+    private BigDecimal limite;
+
+    private BigDecimal saldoBanco;
+
     @Column(name = "image_url")
     private String imageUrl;
 
@@ -35,11 +43,17 @@ public class User extends AbstractAuditingEntity<Long> {
     @Column(name = "public_id", nullable = false)
     private UUID publicId;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_authority",
             joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "authority_name", referencedColumnName = "name")})
     private Set<Authority> authorities = new HashSet<>();
+
+    public User() {
+        this.setSaldoCuenta(BigDecimal.valueOf(200000));
+        this.setSaldoBanco(BigDecimal.valueOf(100000));
+        this.setLimite(BigDecimal.valueOf(500000));
+    }
 
     @Override
     public Long getId() {
@@ -74,6 +88,30 @@ public class User extends AbstractAuditingEntity<Long> {
         this.email = email;
     }
 
+    public BigDecimal getSaldoCuenta() {
+        return saldoCuenta;
+    }
+
+    public void setSaldoCuenta(BigDecimal saldoCuenta) {
+        this.saldoCuenta = saldoCuenta;
+    }
+
+    public BigDecimal getLimite() {
+        return limite;
+    }
+
+    public void setLimite(BigDecimal limite) {
+        this.limite = limite;
+    }
+
+    public BigDecimal getSaldoBanco() {
+        return saldoBanco;
+    }
+
+    public void setSaldoBanco(BigDecimal saldoBanco) {
+        this.saldoBanco = saldoBanco;
+    }
+
     public String getImageUrl() {
         return imageUrl;
     }
@@ -103,12 +141,12 @@ public class User extends AbstractAuditingEntity<Long> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(lastName, user.lastName) && Objects.equals(firstName, user.firstName) && Objects.equals(email, user.email) && Objects.equals(imageUrl, user.imageUrl) && Objects.equals(publicId, user.publicId);
+        return Objects.equals(lastName, user.lastName) && Objects.equals(firstName, user.firstName) && Objects.equals(email, user.email) && Objects.equals(saldoCuenta, user.saldoCuenta) && Objects.equals(limite, user.limite) && Objects.equals(saldoBanco, user.saldoBanco) && Objects.equals(imageUrl, user.imageUrl) && Objects.equals(publicId, user.publicId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(lastName, firstName, email, imageUrl, publicId);
+        return Objects.hash(lastName, firstName, email, saldoCuenta, limite, saldoBanco, imageUrl, publicId);
     }
 
     @Override
@@ -117,6 +155,9 @@ public class User extends AbstractAuditingEntity<Long> {
                 "lastName='" + lastName + '\'' +
                 ", firstName='" + firstName + '\'' +
                 ", email='" + email + '\'' +
+                ", saldoCuenta=" + saldoCuenta +
+                ", limite=" + limite +
+                ", saldoBanco=" + saldoBanco +
                 ", imageUrl='" + imageUrl + '\'' +
                 ", publicId=" + publicId +
                 '}';

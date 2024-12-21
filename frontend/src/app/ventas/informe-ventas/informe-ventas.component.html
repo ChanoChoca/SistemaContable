@@ -1,0 +1,40 @@
+<a href="/ventas">
+  <div id="close" style="right: 20px; top: 80px; width: 50px; height: 50px" class="absolute background-oscuro content-center text-center rounded-full ease-in duration-300">
+    <fa-icon [icon]="faXmark" size="2x" class="color-turquesa"/>
+  </div>
+</a>
+<main class="text-center">
+  <h1 class="mb-10">Informe de Ventas</h1>
+
+  <div class="flex">
+    <div id="ventas" class="flex-1 h-full overflow-x-auto"></div>
+    @if (ventasOrdenadasPorMes.length > 0) {
+
+        <div style="text-align: -webkit-center;" class="flex-1">
+          <table class="table table-striped text-center">
+            <thead>
+            <tr>
+              <th>Mes</th>
+              <th>Total de Ventas</th>
+              <th>Crecimiento</th>
+              <th>% Frente a Mes Anterior</th>
+            </tr>
+            </thead>
+            <tbody>
+              @for (mes of ventasOrdenadasPorMes; track mes) {
+                <tr>
+                  <td>{{ mes }}</td>
+                  <td>{{ ventasPorMes[mes].total }}</td>
+                  <td>{{ ventasPorMes[mes].crecimiento }}</td>
+                  <td>{{ ventasPorMes[mes].porcentaje.toFixed(2) }}%</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+    }
+    @else {
+      <p>No hay ventas disponibles.</p>
+    }
+  </div>
+</main>

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -80,4 +81,25 @@ public class UserService {
         return oneByPublicId.map(userMapper::readUserDTOToUser);
     }
 
+    @Transactional
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    @Transactional
+    public User update(User user) {
+        return this.userRepository.saveAndFlush(user);
+    }
+
+    public User findById(Long userId) {
+        return null;
+    }
+
+    public User getUserByEmail(String email) {
+        Optional<User> oneByEmail = userRepository.findOneByEmail(email);
+        if (oneByEmail.isPresent()) {
+            return oneByEmail.get();
+        }
+        throw new IllegalArgumentException();
+    }
 }

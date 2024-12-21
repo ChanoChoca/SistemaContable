@@ -14,7 +14,7 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="public_id" type="${uuidType}">
-                <constraints  nullable="false" unique="true" />
+                <constraints nullable="false" unique="true" />
             </column>
             <column name="first_name" type="varchar(50)"/>
             <column name="last_name" type="varchar(50)"/>
@@ -22,6 +22,9 @@
                 <constraints unique="true" nullable="true" uniqueConstraintName="ux_user_email"/>
             </column>
             <column name="image_url" type="varchar(256)"/>
+            <column name="saldo_cuenta" type="numeric(15,2)"/>
+            <column name="limite" type="numeric(15,2)"/>
+            <column name="saldo_banco" type="numeric(15,2)"/>
             <column name="created_date" type="timestamp"/>
             <column name="last_modified_date" type="timestamp"/>
         </createTable>

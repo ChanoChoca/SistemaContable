@@ -39,6 +39,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/cuenta-asiento/libro-diario-sin-paginado").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cuenta-asiento/libro-diario").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cuenta-asiento/libro-mayor").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cuenta-asiento/ventas").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cuenta-asiento/exists-cuenta/{cuentaId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cuenta-asiento/exists-asiento/{asientoId}").permitAll()
 
@@ -49,7 +50,23 @@ public class SecurityConfiguration {
 //                        .requestMatchers(HttpMethod.PUT, "/api/cuentas/{id}").permitAll()
 //                        .requestMatchers(HttpMethod.DELETE, "/api/cuentas/{id}").permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/api/articulos-ventas").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/articulos-ventas/get-by-mont").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/articulos-ventas").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/ventas").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/pagos").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/pagos").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/ventas/{id}").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/cuotas/get-by-client").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/cuotas").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/api/facturas/generar").permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/auth/get-authenticated-user").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/usuarios").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/auth/balance").permitAll()
 //                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "assets/*").permitAll()

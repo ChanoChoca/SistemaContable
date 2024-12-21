@@ -12,11 +12,30 @@ import {RegistroVentaComponent} from "./ventas/registro-venta/registro-venta.com
 import {ArticulosFormComponent} from "./articulos/articulos-form/articulos-form.component";
 import {ArticulosListaComponent} from "./articulos/articulos.component";
 import {CosteoComponent} from "./costeo/costeo.component";
+import {InformeVentasComponent} from "./ventas/informe-ventas/informe-ventas.component";
+import {ClienteComponent} from "./cliente/cliente.component";
+import {CuotasComponent} from "./cliente/cuotas/cuotas.component";
 
 export const routes: Routes = [
   {
     path: '',
     component: HomeComponent
+  },
+  {
+    path: 'cliente',
+    component: ClienteComponent,
+    canActivate: [authorityRouteAccess],
+    data: {
+      authorities: ["ROL_CLIENTE"]
+    }
+  },
+  {
+    path: 'cliente/cuotas',
+    component: CuotasComponent,
+    canActivate: [authorityRouteAccess],
+    data: {
+      authorities: ["ROL_CLIENTE"]
+    }
   },
   {
     path: 'cuentas',
@@ -75,24 +94,52 @@ export const routes: Routes = [
     component: ArticulosFormComponent,
     canActivate: [authorityRouteAccess],
     data: {
-      authorities: ["ROL_ADMIN"] // Requiere el rol de admin para acceder
+      authorities: ["ROL_ADMIN", "ROL_EMPLEADO"]
+    }
+  },
+  {
+    path: 'articulo/edit/:id',
+    component: ArticulosFormComponent,
+    canActivate: [authorityRouteAccess],
+    data: {
+      authorities: ["ROL_ADMIN", "ROL_EMPLEADO"]
     }
   },
   {
     path: 'ventas',
-    component: VentasComponent
+    component: VentasComponent,
+    canActivate: [authorityRouteAccess],
+    data: {
+      authorities: ["ROL_ADMIN", "ROL_EMPLEADO"]
+    }
   },
+  {
+    path: 'ventas/informe',
+    component: InformeVentasComponent,
+    canActivate: [authorityRouteAccess],
+    data: {
+      authorities: ["ROL_ADMIN", "ROL_EMPLEADO"]
+    }
+  },
+  {
+    path: 'ventas/costeo',
+    component: CosteoComponent,
+    canActivate: [authorityRouteAccess],
+    data: {
+      authorities: ["ROL_ADMIN", "ROL_EMPLEADO"]
+    }
+  },
+  // {
+  //   path: 'factura',
+  //   component: FacturaComponent
+  // },
   {
     path: 'venta/new',
     component: RegistroVentaComponent,
     canActivate: [authorityRouteAccess],
     data: {
-      authorities: ["ROL_ADMIN"] // Requiere el rol de admin para acceder
+      authorities: ["ROL_ADMIN", "ROL_EMPLEADO"]
     }
-  },
-  {
-    path: 'costeo',
-    component: CosteoComponent
   },
   {
     path: '**',

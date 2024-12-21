@@ -1,13 +1,14 @@
+import {User} from "../core/model/user.model";
+
 export interface Ventas {
   id?: number;
   fecha: Date;
   tipo: string;
-  clienteEmail: string;
+  cliente?: User;
   nroComprobante: number;
   monto: number;
   nroFactura: number;
   descripcion: string;
   vendedorEmail: string;
-  formaPago: string;
   estado: string;
 }

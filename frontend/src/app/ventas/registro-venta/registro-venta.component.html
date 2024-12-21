@@ -4,119 +4,133 @@
   </div>
 </a>
 <main class="text-center">
-  <h1 class="mb-10">Registrar Nueva Venta</h1>
+  <h1>Registro de Venta</h1>
 
-  <!-- Mensaje de error en caso de saldo insuficiente -->
-  @if (saldoInsuficiente) {
-    <div class="text-red-500 mb-4">
-      <p>No hay suficiente saldo en las cuentas de Venta o Mercaderías para registrar esta venta.</p>
-    </div>
-  }
+  <form (ngSubmit)="registrarVenta()" class="inline-flex gap-10">
+    <div class="flex-1 flex flex-col">
+      <label for="tipoVenta">Tipo de Venta:</label>
+      <select id="tipoVenta" [(ngModel)]="nuevaVenta.tipo" name="tipoVenta" required class="px-1 py-2 rounded-lg">
+        @for (tipo of tiposVenta; track tipo) {
+          <option [value]="tipo">{{ tipo }}</option>
+        }
+      </select>
 
-  @if (!stockSuficiente) {
-    <div class="text-red-500 mb-4">
-      <p>No hay suficiente stock disponible para la cantidad seleccionada.</p>
-    </div>
-  }
+      @if (nuevaVenta.tipo === 'Crédito') {
+        <label for="cuotas">Cantidad de Cuotas:</label>
+        <input id="cuotas" type="number" [(ngModel)]="cantidadCuotas" name="cuotas" min="1" required class="px-1 py-2 rounded-lg"/>
+      }
 
-  @if (mostrarMensajeArticuloExistente) {
-    <div class="text-red-500 mb-4">
-      <p>Este artículo ya ha sido agregado a la venta.</p>
-    </div>
-  }
+      <label for="cliente">Cliente:</label>
+      <select id="cliente" [(ngModel)]="nuevaVenta.cliente" name="cliente" class="px-1 py-2 rounded-lg">
+        @for (usuario of usuarios; track usuario) {
+          <option [ngValue]="usuario">{{ usuario.firstName }}</option>
+        }
+      </select>
 
-  <form (ngSubmit)="registrarVenta()" class="inline-flex flex-row gap-10">
-    <div class="flex flex-col gap-5">
-      <!-- Campos de venta -->
-      <div class="flex items-center">
-        <label for="tipo">Tipo de Venta:</label>
-        <select id="tipo" [(ngModel)]="nuevaVenta.tipo" name="tipo" required class="px-1 py-2 rounded-lg">
-          @for (tipo of tiposVenta; track tipo) {
-            <option [value]="tipo">{{ tipo }}</option>
-          }
-        </select>
-      </div>
+      <label for="descripcion">Descripción:</label>
+      <input id="descripcion" type="text" [(ngModel)]="nuevaVenta.descripcion" name="descripcion" required class="px-1 py-2 rounded-lg"/>
 
-      <div class="flex items-center">
-        <label for="clienteEmail">Correo del Cliente:</label>
-        <input id="clienteEmail" type="email" [(ngModel)]="nuevaVenta.clienteEmail" name="clienteEmail" required class="px-1 py-2 rounded-lg">
-      </div>
-
-      <div class="flex items-center">
-        <label for="descripcion">Descripción:</label>
-        <textarea id="descripcion" [(ngModel)]="nuevaVenta.descripcion" name="descripcion" required class="px-1 py-2 rounded-lg"></textarea>
-      </div>
-
-      <div class="flex items-center">
-        <label for="formaPago">Forma de Pago:</label>
-        <select id="formaPago" [(ngModel)]="nuevaVenta.formaPago" name="formaPago" required class="px-1 py-2 rounded-lg">
-          @for (forma of formasPago; track forma) {
-            <option [value]="forma">{{ forma }}</option>
-          }
-        </select>
-      </div>
-
-      <div>
-        <button type="submit" class="btn-pseudoclase">Registrar Venta</button>
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-5">
-      <h2>Agregar artículo</h2>
-      <div class="flex items-center">
-        <label for="articulo">Artículo:</label>
-        <select id="articulo" [(ngModel)]="articuloSeleccionado" name="articulo" required class="px-1 py-2 rounded-lg">
-          @for (articulo of articulos; track articulo) {
-            <option [ngValue]="articulo">{{ articulo.nombre }}</option>
-          }
-        </select>
-      </div>
-
-      <div class="flex items-center">
-        <label for="precioVenta">Precio de Venta:</label>
-        <input id="precioVenta" type="number" [min]="0" [(ngModel)]="precioVenta" name="precioVenta" class="px-1 py-2 rounded-lg" placeholder="Ingrese valor" required/>
-      </div>
-
-      <div class="flex items-center">
-        <label for="cantidad">Cantidad:</label>
-        <input id="cantidad" type="number" [min]="0" [(ngModel)]="cantidad" name="cantidad" required class="px-1 py-2 rounded-lg">
-      </div>
-
-      <div>
-        <!-- Evitar el envío del formulario al hacer clic -->
-        <button type="button" (click)="agregarProducto()" class="btn-pseudoclase">Agregar Artículo</button>
-      </div>
-
-      <!-- Mostrar los artículos agregados -->
-      @if (articulosVentas.length > 0) {
-        <div>
-          <table>
-            <thead>
-            <tr>
-              <th>Artículo</th>
-              <th>Cantidad</th>
-              <th>Subtotal</th>
-              <th>Acción</th>
-            </tr>
-            </thead>
-            <tbody>
-              @for (articuloVenta of articulosVentas; track articuloVenta) {
-                <tr>
-                  <td>{{ articuloVenta.articulo.nombre }}</td>
-                  <td>{{ articuloVenta.cantidad }}</td>
-                  <td>{{ articuloVenta.subtotal }}</td>
-                  <td>
-                    <button type="button" (click)="quitarArticulo(articuloVenta.id)" class="text-red-500">Quitar</button>
-                  </td>
-                </tr>
+      @if (nuevaVenta.tipo === 'Venta' || nuevaVenta.tipo === 'Débito') {
+        <h2>Formas de Pago</h2>
+        <div style="text-align: -webkit-center;">
+          <div class="flex justify-around">
+            <label for="cuenta">Cuenta:</label>
+            <label for="montoPago">Monto:</label>
+          </div>
+          <div class="flex gap-2">
+            <select [(ngModel)]="cuenta" name="cuenta" id="cuenta" class="px-1 py-2 rounded-lg">
+              @for (cuenta of obtenerCuentasFiltradas(); track cuenta) {
+                <option [ngValue]="cuenta">{{ cuenta.nombre }}</option>
               }
-            </tbody>
-          </table>
+            </select>
+            <input type="number" [(ngModel)]="montoPago" name="montoPago" min="0" placeholder="Monto" id="montoPago" class="px-1 py-2 rounded-lg"/>
+          </div>
+          <div class="my-10">
+            <button type="button" (click)="agregarFormaDePago()" class="btn-pseudoclase">Agregar Forma de Pago</button>
+          </div>
+          @if (this.formasDePago.length !== 0) {
+            <table class="text-center">
+              <thead>
+              <tr>
+                <th>Cuenta</th>
+                <th>Monto</th>
+                <th>Acción</th>
+              </tr>
+              </thead>
+              <tbody>
+                @for (pago of formasDePago; track pago) {
+                  <tr>
+                    <td>{{ pago.cuenta.nombre }}</td>
+                    <td>{{ pago.cantidad }}</td>
+                    <td>
+                      <button type="button" (click)="eliminarFormaPago(pago)">Eliminar</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
         </div>
+      }
+      <div class="mt-10">
+        <button type="submit" class="btn-pseudoclase" [disabled]="!puedeRegistrarVenta">Registrar Venta</button>
+      </div>
+    </div>
 
-        <div>
-          <h3 class="text-white">Total: {{ calcularTotal() }}</h3>
-        </div>
+    <div class="flex-1 flex flex-col">
+      <h2 class="text-white">Agregar Artículo</h2>
+
+      <label for="articulo">Artículo:</label>
+      <select [(ngModel)]="articuloSeleccionado" name="articulo" id="articulo" class="px-1 py-2 rounded-lg">
+        @for (articulo of articulosHtml; track articulo) {
+          <option [ngValue]="articulo">{{ articulo.nombre }}</option>
+        }
+      </select>
+
+      <label for="cantidad">Cantidad:</label>
+      <input type="number" [(ngModel)]="cantidad" name="cantidad" min="1" placeholder="Cantidad" id="cantidad" class="px-1 py-2 rounded-lg"/>
+
+      <label for="precioVenta">Precio de Venta:</label>
+      <input type="number" [(ngModel)]="precioVenta" name="precioVenta" min="0" placeholder="Precio de Venta" id="precioVenta" class="px-1 py-2 rounded-lg"/>
+
+      <div class="my-10">
+        <button type="button" (click)="agregarProducto()" class="btn-pseudoclase">Agregar Producto</button>
+      </div>
+
+      @if (!stockSuficiente) {
+        <div class="error">Stock insuficiente.</div>
+      }
+      @if (mostrarMensajeArticuloExistente) {
+        <div class="error">El artículo ya está agregado.</div>
+      }
+
+      @if (this.articulosVentas.length !== 0) {
+        <table class="text-center">
+          <thead>
+          <tr>
+            <th>Artículo</th>
+            <th>Cantidad</th>
+            <th>Precio Unitario</th>
+            <th>Subtotal</th>
+            <th>Acción</th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (articulo of articulosVentas; track articulo) {
+              <tr>
+                <td>{{ articulo.articulo.nombre }}</td>
+                <td>{{ articulo.cantidad }}</td>
+                <td>{{ articulo.precioVenta }}</td>
+                <td>{{ articulo.subtotal }}</td>
+                <td>
+                  <button type="button" (click)="eliminarProducto(articulo)">Eliminar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <h3 class="text-white mt-10">Total: {{ costoArticulos }}</h3>
       }
     </div>
   </form>

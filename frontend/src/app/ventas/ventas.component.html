@@ -1,49 +1,51 @@
 <main style="text-align: -webkit-center;">
   <h1>Ventas</h1>
 
-  @if (authService.hasRoleAdmin()) {
-    <div class="mt-10">
-      <button class="btn-pseudoclase" [routerLink]="['/venta/new']">Registrar Venta</button>
-    </div>
-  }
+  <div class="mt-10 flex gap-10 justify-center">
+    @if (authService.hasRoleAdmin() || authService.hasRoleEmployee()) {
+    <button class="btn-pseudoclase" [routerLink]="['/venta/new']">Registrar Venta</button>
+    }
+    <button class="btn-pseudoclase" [routerLink]="['/ventas/informe']">Informe de Ventas</button>
+<!--    <button class="btn-pseudoclase" [routerLink]="['/ventas/costeo']">Métodos de costeo</button>-->
+  </div>
 
   <!-- Tabla para mostrar las ventas -->
-  <table class="table table-striped mt-10">
-    <thead>
-    <tr>
-      <th>#</th>
-      <th>Fecha</th>
-      <th>Tipo</th>
-      <th>Cliente</th>
-      <th>Nro. Comprobante</th>
-      <th>Monto</th>
-      <th>Nro. Factura</th>
-      <th>Descripción</th>
-      <th>Vendedor</th>
-      <th>Forma de Pago</th>
-      <th>Estado</th>
-      <th>Acciones</th>
-    </tr>
-    </thead>
-    <tbody>
-      @for (venta of ventas; track venta; let i = $index) {
-        <tr>
-          <td>{{ i + 1 }}</td>
-          <td>{{ venta.fecha }}</td>
-          <td>{{ venta.tipo }}</td>
-          <td>{{ venta.clienteEmail }}</td>
-          <td>{{ venta.nroComprobante }}</td>
-          <td>{{ venta.monto}}</td>
-          <td>{{ venta.nroFactura }}</td>
-          <td>{{ venta.descripcion }}</td>
-          <td>{{ venta.vendedorEmail }}</td>
-          <td>{{ venta.formaPago }}</td>
-          <td>{{ venta.estado }}</td>
-          <td>
-            <button (click)="verFactura(venta.id!)" class="btn btn-sm btn-info">Ver Factura</button>
-          </td>
-        </tr>
-      }
-    </tbody>
-  </table>
+  @if (ventas.length !== 0) {
+    <table class="table table-striped mt-10 text-center">
+      <thead>
+      <tr>
+        <th>#</th>
+        <th>Fecha</th>
+        <th>Cliente</th>
+        <th>Vendedor</th>
+        <th>Tipo</th>
+        <th>Forma de Pago</th>
+        <th>Monto</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (venta of ventas; track venta; let i = $index) {
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td>{{ formatearFecha(venta.fecha) }}</td>
+            <td>{{ venta.cliente?.email }}</td>
+            <td>{{ venta.vendedorEmail }}</td>
+            <td>{{ venta.tipo }}</td>
+            <td>
+              @for (pago of pagosFiltrados[venta.id!]; track pago) {
+                <div>{{ pago.cuenta.nombre }} ({{ pago.cantidad }})</div>
+              }
+            </td>
+            <td>{{ venta.monto}}</td>
+            <td>{{ venta.estado }}</td>
+            <td>
+              <button type="button" class="btn-pseudoclase" (click)="imprimirFacturaVenta(venta.id!)">Imprimir Venta<fa-icon [icon]="faDownload" size="2x"/></button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
 </main>

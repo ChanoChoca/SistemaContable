@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -72,5 +73,49 @@ public class CuentaAsientoServiceImpl implements CuentaAsientoService {
         }
 
         return cuentaAsientoRepository.findByCuenta_IdAndAsiento_FechaBetween(cuentaId, fechaInicio, fechaFin);
+    }
+
+    @Override
+    public List<CuentaAsiento> obtenerVentasPorMes(String mes) {
+        // Parsear el mes a una fecha (suponiendo formato 'yyyy-MM' como '2024-05')
+        LocalDate fechaInicio = LocalDate.parse("2024-" + mes + "-01");  // Primer día del mes
+        LocalDate fechaFin = fechaInicio.withDayOfMonth(fechaInicio.lengthOfMonth());  // Último día del mes
+
+        // Convertir LocalDate a Date
+        Date fechaInicioDate = java.sql.Date.valueOf(fechaInicio);
+        Date fechaFinDate = java.sql.Date.valueOf(fechaFin);
+
+        // Usar el repositorio para obtener los CuentaAsiento por CuentaId y el rango de fechas
+        return cuentaAsientoRepository.findValidCuentaAsientosByMonth(fechaInicioDate, fechaFinDate);
+    }
+
+    @Override
+    public List<CuentaAsiento> findByMonth(String mes) {
+        System.out.println("Consultando...");
+        // Mapeamos el nombre del mes al número correspondiente (1-12)
+        Map<String, Integer> mesesMap = new HashMap<>();
+        mesesMap.put("Enero", 1);
+        mesesMap.put("Febrero", 2);
+        mesesMap.put("Marzo", 3);
+        mesesMap.put("Abril", 4);
+        mesesMap.put("Mayo", 5);
+        mesesMap.put("Junio", 6);
+        mesesMap.put("Julio", 7);
+        mesesMap.put("Agosto", 8);
+        mesesMap.put("Septiembre", 9);
+        mesesMap.put("Octubre", 10);
+        mesesMap.put("Noviembre", 11);
+        mesesMap.put("Diciembre", 12);
+
+        // Convertimos el mes a su valor numérico
+        Integer mesNumero = mesesMap.get(mes);
+
+        // Verificamos si el mes es válido
+        if (mesNumero == null) {
+            throw new IllegalArgumentException("Mes no válido");
+        }
+
+        // Filtramos los artículos de venta por el mes de la fecha de la venta
+        return cuentaAsientoRepository.findByAsientoMonth(mesNumero);
     }
 }

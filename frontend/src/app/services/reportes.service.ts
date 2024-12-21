@@ -40,4 +40,10 @@ export class ReportesService {
     };
     return this.http.get<CuentaAsiento[]>(`${environment.API_URL}/cuenta-asiento/libro-mayor`, { params });
   }
+
+  getVentas(mes: string): Observable<CuentaAsiento[]> {
+    const params = { mes };
+    console.log("Enviando solicitud con mes:", mes);  // Verifica que el parámetro es correcto
+    return this.http.get<CuentaAsiento[]>(`${environment.API_URL}/cuenta-asiento/ventas`, { params });
+  }
 }

@@ -1,4 +1,4 @@
-<div class="navbar-container sticky top-0 border-bottom-1 border-gray-200 shadow-1 z-1">
+<div class="navbar-container sticky top-0 border-bottom-1 border-gray-200 shadow-1 z-50">
   <p-toolbar class="toolbar bg-white border-top-none border-x-none border-noround">
     <div class="toolbar-group-left">
       <div class="logo-container">
@@ -9,18 +9,67 @@
     <div class="toolbar-group-right">
       <div class="nav-buttons">
         <a routerLink="/" class="nav-button"><b>Inicio</b></a>
-        <a href="/articulos" class="nav-button"><b>Artículos</b></a>
-        <a href="/ventas" class="nav-button"><b>Ventas</b></a>
+        @if (authService.hasRoleAdmin() || authService.hasRoleEmployee()) {
+          <a href="/articulos" class="nav-button"><b>Artículos</b></a>
+          <a href="/ventas" class="nav-button"><b>Ventas</b></a>
+        }
         <a routerLink="/libro-diario" class="nav-button"><b>Libro Diario</b></a>
         <a routerLink="/libro-mayor" class="nav-button"><b>Libro Mayor</b></a>
         <a routerLink="/cuentas" class="nav-button"><b>Plan De Cuentas</b></a>
         <a routerLink="/asientos" class="nav-button"><b>Asientos Contables</b></a>
       </div>
       <p-menu #menu [model]="currentMenuItems" [popup]="true" class="menu-popup"></p-menu>
-      <button (click)="menu.toggle($event)" class="menu-toggle-button text-center" >
-        <fa-icon [icon]="'bars'" class="menu-icon avatar-sm"></fa-icon>
-        <app-avatar [imageUrl]="connectedUser.imageUrl" avatarSize="avatar-sm" class="avatar12 text-center"></app-avatar>
-      </button>
+      <!-- Botón para mostrar el menú desplegable -->
+      <!-- Botón visible para pantallas menores a 1024px -->
+      @if (!isDesktopView) {
+        <button
+          (click)="toggleAsideMenu()"
+          class="menu-toggle-button text-center"
+        >
+          <fa-icon [icon]="'bars'" class="menu-icon avatar-sm"></fa-icon>
+        </button>
+      }
+
+      <!-- Botón visible para pantallas mayores a 1024px -->
+      @if (isDesktopView) {
+        <button
+          (click)="menu.toggle($event)"
+          class="menu-toggle-button text-center"
+        >
+          <app-avatar
+            [imageUrl]="connectedUser.imageUrl"
+            avatarSize="avatar-sm"
+            class="avatar12 text-center"
+          ></app-avatar>
+        </button>
+      }
     </div>
   </p-toolbar>
 </div>
+
+<!-- Menú desplegable-->
+<aside class="aside-menu" [class.open]="isAsideMenuOpen">
+  <button class="close-aside-button" (click)="toggleAsideMenu()">
+    <fa-icon [icon]="faXmark" class="close-icon"></fa-icon>
+  </button>
+  <ul>
+    <li class="mt-5"><a routerLink="/">Inicio</a></li>
+    @if (authService.hasRoleAdmin() || authService.hasRoleEmployee()) {
+      <li><a href="/articulos">Artículos</a></li>
+      <li><a href="/ventas">Ventas</a></li>
+    }
+    <li><a routerLink="/libro-diario">Libro Diario</a></li>
+    <li><a routerLink="/libro-mayor">Libro Mayor</a></li>
+    <li><a routerLink="/cuentas">Plan De Cuentas</a></li>
+    <li><a routerLink="/asientos">Asientos Contables</a></li>
+    @if (authService.isAuthenticated()) {
+      @if (authService.hasRoleClient()) {
+        <li><a href="/cliente">Mi Cuenta</a></li>
+      }
+      <li (click)="logout()" style="cursor: pointer">Log out</li>
+    } @else {
+      <li (click)="login()" style="cursor: pointer">Log in</li>
+      <li (click)="login()" style="cursor: pointer">Sign up</li>
+    }
+  </ul>
+</aside>

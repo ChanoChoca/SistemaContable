@@ -2,7 +2,7 @@
 
   <h1>Lista de Artículos</h1>
 
-  @if (authService.hasRoleAdmin()) {
+  @if (authService.hasRoleAdmin() || authService.hasRoleEmployee()) {
     <div class="mt-10">
       <button class="btn-pseudoclase" [routerLink]="['/articulo/new']">Crear artículo</button>
     </div>
@@ -14,6 +14,10 @@
       <th>Nombre</th>
       <th>Precio Unitario</th>
       <th>Stock Actual</th>
+      <th>Fecha de creación</th>
+      @if (authService.hasRoleAdmin()) {
+        <th>Acciones</th>
+      }
     </tr>
     </thead>
     <tbody>
@@ -22,6 +26,12 @@
           <td>{{ articulo.nombre }}</td>
           <td>{{ articulo.precioUnitario}}</td>
           <td>{{ articulo.stockActual }}</td>
+          <td>{{articulo.fechaCreacion}}</td>
+          @if (authService.hasRoleAdmin() || authService.hasRoleEmployee()) {
+            <td>
+              <button class="btn-pseudoclase" [routerLink]="['/articulo/edit', articulo.id]">Reposición</button>
+            </td>
+          }
         </tr>
       }
     </tbody>

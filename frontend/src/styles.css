@@ -3,6 +3,17 @@
 @tailwind components;
 @tailwind utilities;
 
+canvas {
+  display: block !important;
+  width: 100% !important;
+}
+
+.g2-tooltip {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+}
+
 h1, h2, h3, h4, h5, h6, p, button, a, input, strong, label {
   font-family: 'Rubik', sans-serif;
 }
@@ -33,6 +44,14 @@ h6, p {
 
 h1, h2, h6, p, label, span {
   color: white;
+}
+
+.p-menuitem-text {
+  color: black !important;
+}
+
+.aside-menu {
+  transition: 0.3s ease-in-out;
 }
 
 h6 {

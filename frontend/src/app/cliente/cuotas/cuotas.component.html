@@ -1,0 +1,80 @@
+<a href="/cliente">
+  <div id="close" style="right: 20px; top: 80px; width: 50px; height: 50px" class="absolute background-oscuro content-center text-center rounded-full ease-in duration-300">
+    <fa-icon [icon]="faXmark" size="2x" class="color-turquesa"/>
+  </div>
+</a>
+
+<main class="text-center">
+  <h1 class="mb-10">Cuotas</h1>
+
+  @if (cuotasPendientes.length > 0) {
+    <div class="flex gap-5">
+      <table class="table table-striped text-center flex-1">
+        <thead>
+        <tr>
+          <th>Cuota</th>
+          <th>Monto</th>
+          <th>Acción</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (pendiente of cuotasPendientes; track pendiente) {
+            <tr>
+              <td>Cuota {{pendiente.numero}} de {{pendiente.total}}</td>
+              <td>{{pendiente.cuota.monto}}</td>
+              <td class="flex gap-5 !justify-center">
+                <button class="btn-pseudoclase" (click)="pagarCuota(pendiente.cuota.id, 'contado')" [disabled]="!esPagoValido(pendiente.cuota.monto)">Pagar al contado</button>
+                <button class="btn-pseudoclase" (click)="pagarCuota(pendiente.cuota.id, 'tarjeta')" [disabled]="!esPagoValido(pendiente.cuota.monto)">Pagar con tarjeta</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <div class="flex-1 flex flex-col gap-5" style="text-align: -webkit-center">
+        <div>
+          <h2>Formas de Pago</h2>
+
+          <label for="cuenta">Cuenta:</label>
+          <select [(ngModel)]="cuenta" id="cuenta" class="text-black px-1 py-2 rounded-lg">
+            @for (cuenta of obtenerCuentasFiltradas(); track cuenta) {
+              <option class="text-black" [ngValue]="cuenta">
+                {{ cuenta.nombre }}
+              </option>
+            }
+          </select>
+        </div>
+        <div>
+          <label for="montoPago">Monto:</label>
+          <input type="number" [(ngModel)]="montoPago" id="montoPago" class="text-black px-1 py-2 rounded-lg" min="0" />
+        </div>
+        <div class="inline-block">
+          <button (click)="agregarFormaDePago()" class="btn-pseudoclase my-10">Agregar Forma de Pago</button>
+        </div>
+        @if (this.formasDePago.length !== 0) {
+          <table class="text-center">
+            <thead>
+            <tr>
+              <th>Cuenta</th>
+              <th>Monto</th>
+              <th>Acción</th>
+            </tr>
+            </thead>
+            <tbody>
+              @for (pago of formasDePago; track pago) {
+                <tr>
+                  <td>{{ pago.cuenta.nombre }}</td>
+                  <td>{{ pago.cantidad }}</td>
+                  <td>
+                    <button type="button" (click)="eliminarFormaPago(pago)">Eliminar</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  } @else {
+    <h2>No hay cuentas por pagar</h2>
+  }
+</main>
