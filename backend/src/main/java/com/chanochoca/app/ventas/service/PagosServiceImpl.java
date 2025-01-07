@@ -3,6 +3,7 @@ package com.chanochoca.app.ventas.service;
 import com.chanochoca.app.ventas.models.NewPagoDTO;
 import com.chanochoca.app.ventas.models.entity.Pagos;
 import com.chanochoca.app.ventas.repository.PagosRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -35,5 +36,10 @@ public class PagosServiceImpl implements PagosService {
             pagosBd.add(pagoBd);
         }
         return (List<Pagos>) pagosRepository.saveAll(pagosBd);
+    }
+
+    @Override
+    public List<Pagos> findByVentaId(Long ventaId) {
+        return pagosRepository.getByVenta_Id(ventaId);
     }
 }

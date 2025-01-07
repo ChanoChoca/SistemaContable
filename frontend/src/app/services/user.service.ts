@@ -23,6 +23,15 @@ export class UserService {
     return this.http.put<User>(`${environment.API_URL}/auth/balance`, balanceData);
   }
 
+  updateUserNroDocumento(userEmail: string, data: { cuit?: number; direccion?: string }): Observable<User> {
+    const payload = {
+      email: userEmail,
+      ...data, // Solo incluirá las propiedades proporcionadas
+    };
+
+    return this.http.put<User>(`${environment.API_URL}/auth/nroDocumento`, payload);
+  }
+
   fetchHttpUser(forceResync: boolean): Observable<User[]> {
     const params = new HttpParams().set('forceResync', forceResync);
     return this.http.get<User[]>(`${environment.API_URL}/auth/get-authenticated-user`, {params})

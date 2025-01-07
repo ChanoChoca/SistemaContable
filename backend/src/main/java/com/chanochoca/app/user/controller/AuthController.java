@@ -72,9 +72,6 @@ public class AuthController {
         // Actualizar el usuario en la base de datos
         User userUpdated = userService.update(user);
 
-        System.out.println("Usuario con el saldo anterior (banco, cuenta, limite): " + user.getSaldoBanco() + " " + user.getSaldoCuenta() + " " + user.getLimite());
-        System.out.println("Usuario con el saldo posterior (banco, cuenta, limite): " + userUpdated.getSaldoBanco() + " " + userUpdated.getSaldoCuenta() + " " + userUpdated.getLimite());
-
         return ResponseEntity.ok().body(userUpdated);  // Respuesta con el usuario actualizado
     }
 
@@ -87,5 +84,38 @@ public class AuthController {
     @GetMapping("/email")
     public ResponseEntity<User> getCuentasByClient(@RequestParam String email) {
         return ResponseEntity.ok(userService.getUserByEmail(email));
+    }
+
+    @PutMapping("/nroDocumento")
+    public ResponseEntity<User> updateNroDocumento(@RequestBody Map<String, Object> balanceData) {
+        String email = String.valueOf(balanceData.get("email"));
+
+        // Obtener el usuario por su email
+        User user = userService.getUserByEmail(email);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        // Actualizar CUIT si está presente
+        if (balanceData.containsKey("cuit")) {
+            Object cuitObj = balanceData.get("cuit");
+            if (cuitObj != null) {
+                long cuit = Long.parseLong(cuitObj.toString());
+                user.setCuit(cuit); // Asignar el nuevo CUIT
+            }
+        }
+
+        // Actualizar dirección si está presente
+        if (balanceData.containsKey("direccion")) {
+            Object direccionObj = balanceData.get("direccion");
+            if (direccionObj != null) {
+                String direccion = direccionObj.toString();
+                user.setDireccion(direccion); // Asignar la nueva dirección
+            }
+        }
+
+        // Guardar los cambios y retornar el usuario actualizado
+        User updatedUser = userService.update(user);
+        return ResponseEntity.ok().body(updatedUser);
     }
 }

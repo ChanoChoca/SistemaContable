@@ -18,7 +18,7 @@ import {VentasService} from "../../services/ventas.service";
 import {ArticulosVentasService} from "../../services/articulos-ventas.service";
 import {Pagos} from "../../models/pagos";
 import {Cuotas} from "../../models/cuotas";
-import {CuotasService} from "../../services/cuotas.service";
+import {ArcaService} from "../../services/arca.service";
 
 @Component({
   selector: 'app-registro-venta',
@@ -40,17 +40,17 @@ export class RegistroVentaComponent {
   articulos: Articulos[] = [];
   articulosHtml: Articulos[] = [];
   articuloSeleccionado: Articulos | null = null;
-  metodoCosteoSeleccionado: string = '';
   cantidad: number = 1;
   costoArticulos: number = 0;
   stockSuficiente: boolean = true;
-  precioBajo: boolean = false;
   precioVenta: number = 0;
   formasDePago: Pagos[] = [];
   montoPago: number = 0;
   montoMercaderia: number = 0;
   mostrarMensajeArticuloExistente: boolean = false;
   cantidadCuotas: number = 1;
+  cuitTemp: number = 10000000000;
+  direccionTemp: string | undefined;
   cuotas: Cuotas[] = [];
   tiposVenta = ['Venta', 'Crédito', 'Débito'];
   @Output() ventaRegistrada = new EventEmitter<Ventas>();
@@ -59,12 +59,11 @@ export class RegistroVentaComponent {
     id: 0,
     fecha: new Date(),
     tipo: '',
-    cliente: undefined,
-    nroComprobante: 0,
+    cliente: {cuit: 0},
     monto: 0,
     nroFactura: 0,
     descripcion: '',
-    vendedorEmail: '',
+    vendedor: undefined,
     estado: 'Pendiente',
   };
 
@@ -76,9 +75,8 @@ export class RegistroVentaComponent {
       cliente: undefined,
       monto: 0,
       descripcion: '',
-      vendedorEmail: '',
+      vendedor: undefined,
       estado: 'Pendiente',
-      nroComprobante: 0,
       nroFactura: 0,
     };
   }
@@ -90,6 +88,7 @@ export class RegistroVentaComponent {
     private articuloService: ArticulosService,
     private articulosVentasService: ArticulosVentasService,
     private ventasService: VentasService,
+    private arcaService: ArcaService
   ) {
     this.cargarVentas();
     this.cargarCuentas();
@@ -317,63 +316,113 @@ export class RegistroVentaComponent {
     return (
       productosEnLocalStorage.length > 0 && // Verificar si hay productos
       this.nuevaVenta.tipo !== '' &&        // Verificar si el tipo de venta está definido
-      this.nuevaVenta.cliente !== undefined // Verificar si el cliente está seleccionado
+      this.nuevaVenta.cliente !== undefined && // Verificar si el cliente está seleccionado
+      (this.nuevaVenta.cliente.direccion != null || this.direccionTemp != undefined)
     );
   }
 
   registrarVenta(): void {
-    // Asegúrate de que la venta tenga todos los datos necesarios
-    this.nuevaVenta.vendedorEmail = this.authService.getAuthenticatedUserEmail();
-    this.nuevaVenta.monto = this.costoArticulos; // El monto total de la venta
+    // Obtener el vendedor antes de proceder
+    this.usuariosService.getUserByEmail(this.authService.getAuthenticatedUserEmail()).subscribe(vendedor => {
+      // Asignar el vendedor a la venta
+      this.nuevaVenta.vendedor = vendedor;
 
-    // Validar si el monto concuerda con los articulos para comprar
-    if (this.nuevaVenta.tipo === 'Venta' || this.nuevaVenta.tipo === 'Débito') {
-      if (!this.validarPago()) {
-        alert("El total de las formas de pago no coincide con el monto de la venta.");
-        localStorage.clear();
-        return;
+      // Continuar con la lógica de registro una vez que el vendedor esté asignado
+      this.nuevaVenta.monto = this.costoArticulos; // El monto total de la venta
+
+      // Validar si el monto concuerda con los artículos para comprar
+      if (this.nuevaVenta.tipo === 'Venta' || this.nuevaVenta.tipo === 'Débito') {
+        if (!this.validarPago()) {
+          alert("El total de las formas de pago no coincide con el monto de la venta.");
+          localStorage.clear();
+          return;
+        }
       }
-    }
 
-    // Obtener los artículos de la venta desde localStorage
-    const articulosVentas: ArticulosVentas[] = JSON.parse(localStorage.getItem('articulosVentas') || '[]');
+      // Obtener los artículos de la venta desde localStorage
+      const articulosVentas: ArticulosVentas[] = JSON.parse(localStorage.getItem('articulosVentas') || '[]');
 
-    this.montoMercaderia = articulosVentas.reduce((total, articuloVenta) => total + articuloVenta.articulo.precioUnitario * articuloVenta.cantidad, 0);
+      this.montoMercaderia = articulosVentas.reduce((total, articuloVenta) => total + articuloVenta.articulo.precioUnitario * articuloVenta.cantidad, 0);
 
-    // Asignar la referencia a la venta a cada artículo
-    articulosVentas.forEach((articuloVenta: ArticulosVentas) => {
-      articuloVenta.venta = this.nuevaVenta; // Asigna la venta a cada artículo
+      // Asignar la referencia a la venta a cada artículo
+      articulosVentas.forEach((articuloVenta: ArticulosVentas) => {
+        articuloVenta.venta = this.nuevaVenta; // Asigna la venta a cada artículo
+      });
+
+      // Crear un objeto que contenga la venta y los artículos de venta
+      const ventaConArticulos = {
+        venta: this.nuevaVenta,
+        articulosVentas: articulosVentas,
+        formasDePago: this.formasDePago,
+        cuotas: this.cuotas
+      };
+
+      // Actualizar el saldo del cliente dependiendo del tipo de venta
+      this.actualizarSaldoCliente(this.nuevaVenta.cliente!, this.nuevaVenta.monto, this.nuevaVenta.tipo);
+
+      // Enviar la venta y los artículos de venta en un solo endpoint
+      this.articulosVentasService.crearVentaConArticulos(ventaConArticulos).subscribe((result) => {
+        this.descontarStock(articulosVentas);
+
+        // Emitir evento de venta registrada
+        this.ventaRegistrada.emit(result.venta);
+
+        if (this.nuevaVenta.cliente?.cuit != null) {
+          this.cuitTemp = this.nuevaVenta.cliente?.cuit;
+        } else {
+          const data: { cuit?: number; direccion?: string } = {};
+          if (this.cuitTemp) {
+            data.cuit = this.cuitTemp;
+          }
+          if (this.direccionTemp) {
+            data.direccion = this.direccionTemp;
+          }
+
+          this.usuariosService.updateUserNroDocumento(this.nuevaVenta.cliente!.email!, data).subscribe({
+            next: () => {
+              console.log('Número de documento actualizado correctamente');
+            },
+            error: (err) => {
+              console.error('Error al actualizar el número de documento', err);
+            }
+          });
+        }
+
+        const comprobantes = [
+          { cbteTipo: 1, docNro: this.cuitTemp, impNeto: this.nuevaVenta.monto, ventaId: result[0].venta.id },
+          { cbteTipo: 6, docNro: this.cuitTemp, impNeto: this.nuevaVenta.monto, ventaId: result[0].venta.id  },
+          // { cbteTipo: 11, docNro: this.cuitTemp, impNeto: this.nuevaVenta.monto, ventaId: result[0].venta.id  },
+          { cbteTipo: 51, docNro: this.cuitTemp, impNeto: this.nuevaVenta.monto, ventaId: result[0].venta.id  },
+        ];
+
+        this.arcaService.generarComprobantes(comprobantes).subscribe({
+          next: (success) => {
+            if (success) {
+              console.log('Comprobantes generados exitosamente.');
+            } else {
+              console.error('Error al generar comprobantes.');
+            }
+          },
+          error: (err) => {
+            console.error('Error en la solicitud:', err);
+          },
+        });
+
+        // Limpiar el localStorage después de registrar la venta
+        localStorage.clear();
+        this.articulosVentas = [];
+        this.cuitTemp = 10000000000;
+        this.direccionTemp = undefined;
+        this.reiniciarFormulario();
+      }, (error) => {
+        console.error('Error al registrar la venta y los artículos', error);
+      });
+
+      // Registrar el asiento contable
+      this.registrarAsientoContable();
     });
-
-    // Crear un objeto que contenga la venta y los artículos de venta
-    const ventaConArticulos = {
-      venta: this.nuevaVenta,
-      articulosVentas: articulosVentas,
-      formasDePago: this.formasDePago,
-      cuotas: this.cuotas
-    };
-
-    // Actualizar el saldo del cliente dependiendo del tipo de venta
-    this.actualizarSaldoCliente(this.nuevaVenta.cliente!, this.nuevaVenta.monto, this.nuevaVenta.tipo);
-
-    // Enviar la venta y los artículos de venta en un solo endpoint
-    this.articulosVentasService.crearVentaConArticulos(ventaConArticulos).subscribe((result) => {
-
-      this.descontarStock(articulosVentas);
-      // Emitir evento de venta registrada
-      this.ventaRegistrada.emit(result.venta);
-
-      // Limpiar el localStorage después de registrar la venta
-      localStorage.clear();
-      this.articulosVentas = [];
-      this.reiniciarFormulario();
-    }, (error) => {
-      console.error('Error al registrar la venta y los artículos', error);
-    });
-
-    // Registrar el asiento contable
-    this.registrarAsientoContable();
   }
+
 
   descontarStock(articulosVentas: ArticulosVentas[]): void {
     articulosVentas.forEach((articuloVenta) => {
@@ -418,14 +467,14 @@ export class RegistroVentaComponent {
         this.nuevaVenta.estado = 'Pagada';
 
         // Verificar si el cliente tiene monto
-        if (this.nuevaVenta.cliente?.saldoCuenta! < this.nuevaVenta.monto) {
+        if (cliente.saldoCuenta === undefined || cliente.saldoCuenta < this.nuevaVenta.monto) {
           alert('El cliente no tiene saldo suficiente para realizar esta venta.');
           localStorage.clear();
           return;
         }
 
         // Descontar el saldo de la cuenta del cliente
-        cliente.saldoCuenta! -= monto;
+        cliente.saldoCuenta -= monto;
         break;
       case 'Crédito':
         // Verificación de existencia de la cuenta 'Deudores por ventas'
@@ -441,7 +490,7 @@ export class RegistroVentaComponent {
         }
 
         // Verificación de si el cliente alcanza el límite de crédito
-        if (this.nuevaVenta.cliente!.limite! < this.nuevaVenta.monto) {
+        if (cliente.limite === undefined || cliente.limite < this.nuevaVenta.monto) {
           alert('El cliente no tiene suficiente límite de crédito para realizar esta venta.');
           localStorage.clear();
           return;
@@ -467,20 +516,20 @@ export class RegistroVentaComponent {
         }
 
         // Descontar el limite del cliente
-        cliente.limite! -= monto;
+        cliente.limite -= monto;
         break;
       case 'Débito':
         this.nuevaVenta.estado = 'Pagada';
 
         // Verificación de saldo del cliente para pago con débito
-        if (this.nuevaVenta.cliente!.saldoBanco! < this.nuevaVenta.monto) {
+        if (cliente.saldoBanco === undefined || cliente.saldoBanco < this.nuevaVenta.monto) {
           alert('El cliente no tiene saldo suficiente en su cuenta bancaria para realizar esta venta.');
           localStorage.clear();
           return;
         }
 
         // Si es débito, se descuenta del saldo bancario
-        cliente.saldoBanco! -= monto;
+        cliente.saldoBanco -= monto;
         break;
       default:
         break;
@@ -495,54 +544,112 @@ export class RegistroVentaComponent {
   }
 
   registrarAsientoContable(): void {
-    const asiento: Asiento = {
-      fecha: new Date(),
-      descripcion: `Venta de producto - Factura ${this.nuevaVenta.nroFactura}`,
-      usuarioEmail: this.authService.getAuthenticatedUserEmail()
-    };
+    // Obtener el usuario autenticado como un objeto User
+    this.usuariosService
+      .getUserByEmail(this.authService.getAuthenticatedUserEmail())
+      .toPromise()
+      .then((usuario) => {
+        if (!usuario) {
+          console.error('Usuario no encontrado');
+          return;
+        }
 
-    // Obtener las cuentas necesarias (Caja, Venta, CMV, Mercaderías)
-    const cuentasAfectadas: CuentaAsiento[] = [];
+        const asiento: Asiento = {
+          fecha: new Date(),
+          descripcion: `Venta de producto - Factura ${this.nuevaVenta.nroFactura}`,
+          usuario, // Asignar el usuario directamente
+        };
 
-    const cuentaDeudoresPorVentas = this.cuentas.find(cuenta => cuenta.nombre === 'Deudores por ventas');
-    const cuentaVenta = this.cuentas.find(cuenta => cuenta.nombre === 'Ventas');
-    const cuentaCMV = this.cuentas.find(cuenta => cuenta.nombre === 'CMV');
-    const cuentaMercaderias = this.cuentas.find(cuenta => cuenta.nombre === 'Mercaderias');
+        // Obtener las cuentas necesarias (Caja, Venta, CMV, Mercaderías)
+        const cuentasAfectadas: CuentaAsiento[] = [];
 
-    let sumatoriaDebe = 0;
-    // Si hay más de una forma de pago, procesarlas por separado
-    this.formasDePago.forEach(pago => {
-      cuentasAfectadas.push(
-        { id: undefined!, cuenta: pago.cuenta, asiento, debe: pago.cantidad, haber: 0, saldo: pago.cuenta.saldoActual + pago.cantidad },
-      );
-      sumatoriaDebe = sumatoriaDebe + pago.cantidad;
-    });
+        const cuentaDeudoresPorVentas = this.cuentas.find(
+          (cuenta) => cuenta.nombre === 'Deudores por ventas'
+        );
+        const cuentaVenta = this.cuentas.find((cuenta) => cuenta.nombre === 'Ventas');
+        const cuentaCMV = this.cuentas.find((cuenta) => cuenta.nombre === 'CMV');
+        const cuentaMercaderias = this.cuentas.find(
+          (cuenta) => cuenta.nombre === 'Mercaderias'
+        );
 
-    if (this.nuevaVenta.tipo === 'Crédito') {
-      // Venta a crédito
-      cuentasAfectadas.push(
-        { id: undefined!, cuenta: cuentaDeudoresPorVentas!, asiento, debe: this.nuevaVenta.monto, haber: 0, saldo: cuentaDeudoresPorVentas!.saldoActual + sumatoriaDebe },
-        { id: undefined!, cuenta: cuentaVenta!, asiento, debe: 0, haber: this.nuevaVenta.monto, saldo: cuentaVenta!.saldoActual - sumatoriaDebe }
-      );
-    } else {
-      cuentasAfectadas.push(
-        { id: undefined!, cuenta: cuentaVenta!, asiento, debe: 0, haber: sumatoriaDebe, saldo: cuentaVenta!.saldoActual - sumatoriaDebe }
-      );
-    }
+        let sumatoriaDebe = 0;
+        // Procesar las formas de pago
+        this.formasDePago.forEach((pago) => {
+          cuentasAfectadas.push({
+            id: undefined!,
+            cuenta: pago.cuenta,
+            asiento,
+            debe: pago.cantidad,
+            haber: 0,
+            saldo: pago.cuenta.saldoActual + pago.cantidad,
+          });
+          sumatoriaDebe += pago.cantidad;
+        });
 
-    cuentasAfectadas.push(
-      { id: undefined!, cuenta: cuentaCMV!, asiento, debe: this.montoMercaderia, haber: 0, saldo: cuentaCMV!.saldoActual + this.montoMercaderia },
-      { id: undefined!, cuenta: cuentaMercaderias!, asiento, debe: 0, haber: this.montoMercaderia, saldo: cuentaMercaderias!.saldoActual - this.montoMercaderia }
-    );
+        if (this.nuevaVenta.tipo === 'Crédito') {
+          cuentasAfectadas.push(
+            {
+              id: undefined!,
+              cuenta: cuentaDeudoresPorVentas!,
+              asiento,
+              debe: this.nuevaVenta.monto,
+              haber: 0,
+              saldo: cuentaDeudoresPorVentas!.saldoActual + sumatoriaDebe,
+            },
+            {
+              id: undefined!,
+              cuenta: cuentaVenta!,
+              asiento,
+              debe: 0,
+              haber: this.nuevaVenta.monto,
+              saldo: cuentaVenta!.saldoActual - sumatoriaDebe,
+            }
+          );
+        } else {
+          cuentasAfectadas.push({
+            id: undefined!,
+            cuenta: cuentaVenta!,
+            asiento,
+            debe: 0,
+            haber: sumatoriaDebe,
+            saldo: cuentaVenta!.saldoActual - sumatoriaDebe,
+          });
+        }
 
-    // Actualizar los saldos de las cuentas
-    cuentasAfectadas.forEach(cuentaAfectada => {
-      this.cuentaService.actualizarSaldoCuenta(cuentaAfectada.cuenta.id!, cuentaAfectada.saldo).toPromise();
-    });
+        cuentasAfectadas.push(
+          {
+            id: undefined!,
+            cuenta: cuentaCMV!,
+            asiento,
+            debe: this.montoMercaderia,
+            haber: 0,
+            saldo: cuentaCMV!.saldoActual + this.montoMercaderia,
+          },
+          {
+            id: undefined!,
+            cuenta: cuentaMercaderias!,
+            asiento,
+            debe: 0,
+            haber: this.montoMercaderia,
+            saldo: cuentaMercaderias!.saldoActual - this.montoMercaderia,
+          }
+        );
 
-    // Llamar al servicio para crear los asientos
-    this.cuentaAsientoService.crearCuentasAsiento(asiento, cuentasAfectadas);
-    this.formasDePago = [];
+        // Actualizar los saldos de las cuentas
+        cuentasAfectadas.forEach((cuentaAfectada) => {
+          this.cuentaService
+            .actualizarSaldoCuenta(cuentaAfectada.cuenta.id!, cuentaAfectada.saldo)
+            .toPromise();
+        });
+
+        // Crear las cuentas de asiento
+        this.cuentaAsientoService.crearCuentasAsiento(asiento, cuentasAfectadas);
+
+        this.formasDePago = [];
+      })
+      .catch((error) => {
+        console.error('Error al obtener el usuario:', error);
+      });
   }
 
   protected readonly faXmark = faXmark;

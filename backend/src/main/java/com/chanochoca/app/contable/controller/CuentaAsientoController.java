@@ -62,7 +62,6 @@ public class CuentaAsientoController {
 
     @GetMapping("/ventas")
     public ResponseEntity<List<CuentaAsiento>> ventas(@RequestParam("mes") String mes) {
-        System.out.println("Procesando pa");
         // Llamar al servicio para obtener las ventas para el mes
         List<CuentaAsiento> cuentaAsientos = cuentaAsientoService.obtenerVentasPorMes(mes);
 
@@ -74,7 +73,6 @@ public class CuentaAsientoController {
 
     @GetMapping("/costeo")
     public List<CuentaAsiento> getArticulosVentasByMonth(@RequestParam String mes) {
-        System.out.println("Consultando a...");
         return cuentaAsientoService.findByMonth(mes);
     }
 

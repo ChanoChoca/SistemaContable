@@ -5,10 +5,9 @@ export interface Ventas {
   fecha: Date;
   tipo: string;
   cliente?: User;
-  nroComprobante: number;
   monto: number;
   nroFactura: number;
   descripcion: string;
-  vendedorEmail: string;
+  vendedor?: User;
   estado: string;
 }

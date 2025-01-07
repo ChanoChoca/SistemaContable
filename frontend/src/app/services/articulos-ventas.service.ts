@@ -49,4 +49,10 @@ export class ArticulosVentasService {
       params: { mes }
     });
   }
+
+  getArticulosVentasByVentaId(ventaId: number): Observable<ArticulosVentas[]> {
+    return this.http.get<ArticulosVentas[]>(`${environment.API_URL}/articulos-ventas/get-by-ventaId`, {
+      params: { ventaId }
+    });
+  }
 }

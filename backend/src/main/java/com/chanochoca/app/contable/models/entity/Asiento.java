@@ -1,6 +1,7 @@
 package com.chanochoca.app.contable.models.entity;
 
 import com.chanochoca.app.user.models.AbstractAuditingEntity;
+import com.chanochoca.app.user.models.entity.User;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
@@ -25,8 +26,9 @@ public class Asiento extends AbstractAuditingEntity<Long> {
     @Column(nullable = false)
     private String descripcion;
 
-    @Column
-    private String usuarioEmail;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User usuario;
 
     public Asiento() {
     }
@@ -56,11 +58,11 @@ public class Asiento extends AbstractAuditingEntity<Long> {
         this.descripcion = descripcion;
     }
 
-    public String getUsuarioEmail() {
-        return usuarioEmail;
+    public User getUsuario() {
+        return usuario;
     }
 
-    public void setUsuarioEmail(String usuarioEmail) {
-        this.usuarioEmail = usuarioEmail;
+    public void setUsuario(User usuario) {
+        this.usuario = usuario;
     }
 }

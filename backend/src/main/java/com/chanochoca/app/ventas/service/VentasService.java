@@ -10,4 +10,6 @@ public interface VentasService {
     Ventas getVentaById(Long id);
 
     List<Ventas> getVentasByClienteEmail(String userEmail);
+
+    Ventas findById(long ventaId);
 }

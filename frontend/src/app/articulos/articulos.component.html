@@ -26,7 +26,7 @@
           <td>{{ articulo.nombre }}</td>
           <td>{{ articulo.precioUnitario}}</td>
           <td>{{ articulo.stockActual }}</td>
-          <td>{{articulo.fechaCreacion}}</td>
+          <td>{{formatearFecha(articulo.fechaCreacion)}}</td>
           @if (authService.hasRoleAdmin() || authService.hasRoleEmployee()) {
             <td>
               <button class="btn-pseudoclase" [routerLink]="['/articulo/edit', articulo.id]">Reposición</button>

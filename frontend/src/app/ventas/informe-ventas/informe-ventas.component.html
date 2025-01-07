@@ -6,35 +6,40 @@
 <main class="text-center">
   <h1 class="mb-10">Informe de Ventas</h1>
 
-  <div class="flex">
-    <div id="ventas" class="flex-1 h-full overflow-x-auto"></div>
-    @if (ventasOrdenadasPorMes.length > 0) {
+  <div class="flex justify-center items-center min-h-[400px]">
+    <!-- Gráfico -->
+    <div id="ventas" class="flex-1 h-full overflow-x-auto">
+      <!-- El gráfico se renderiza aquí mediante TypeScript -->
+    </div>
 
-        <div style="text-align: -webkit-center;" class="flex-1">
-          <table class="table table-striped text-center">
-            <thead>
-            <tr>
-              <th>Mes</th>
-              <th>Total de Ventas</th>
-              <th>Crecimiento</th>
-              <th>% Frente a Mes Anterior</th>
-            </tr>
-            </thead>
-            <tbody>
-              @for (mes of ventasOrdenadasPorMes; track mes) {
-                <tr>
-                  <td>{{ mes }}</td>
-                  <td>{{ ventasPorMes[mes].total }}</td>
-                  <td>{{ ventasPorMes[mes].crecimiento }}</td>
-                  <td>{{ ventasPorMes[mes].porcentaje.toFixed(2) }}%</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+    <!-- Tabla o mensaje alternativo -->
+    @if (ventasOrdenadasPorMes.length > 0) {
+      <div style="text-align: -webkit-center;" class="flex-1">
+        <table class="table table-striped text-center">
+          <thead>
+          <tr>
+            <th>Mes</th>
+            <th>Total de Ventas</th>
+            <th>Crecimiento</th>
+            <th>% Frente a Mes Anterior</th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (mes of ventasOrdenadasPorMes; track mes) {
+              <tr>
+                <td>{{ mes }}</td>
+                <td>{{ ventasPorMes[mes].total }}</td>
+                <td>{{ ventasPorMes[mes].crecimiento }}</td>
+                <td>{{ ventasPorMes[mes].porcentaje.toFixed(2) }}%</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     }
     @else {
-      <p>No hay ventas disponibles.</p>
+      <p class="flex-1 text-center text-gray-500">No hay ventas disponibles.</p>
     }
   </div>
 </main>
+

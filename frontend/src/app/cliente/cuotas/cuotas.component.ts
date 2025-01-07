@@ -196,72 +196,99 @@ export class CuotasComponent implements OnInit {
       return;
     }
 
-    // Validación de saldo
+    // Validación de cliente
+    if (!cuota.venta.cliente) {
+      console.error("El cliente asociado a la venta no existe.");
+      return;
+    }
+
+    const cliente = cuota.venta.cliente;
+
+    // Validación de saldo disponible
     const saldoDisponible = forma === 'contado'
-      ? cuota.venta.cliente?.saldoCuenta ?? 0
-      : cuota.venta.cliente?.saldoBanco ?? 0;
+      ? cliente.saldoCuenta ?? 0
+      : cliente.saldoBanco ?? 0;
 
     if (saldoDisponible < cuota.monto) {
       alert("Saldo insuficiente");
       return;
     }
 
-    this.verificarAsientoContable(cuota);
-
-    // Actualización del saldo del cliente
+    // Validación de las propiedades antes de modificar
     if (forma === 'contado') {
-      cuota.venta.cliente!.saldoCuenta! -= cuota.monto;
+      if (cliente.saldoCuenta === undefined) {
+        console.error("El saldo de cuenta del cliente no está definido.");
+        return;
+      }
+      cliente.saldoCuenta -= cuota.monto;
     } else {
-      cuota.venta.cliente!.saldoBanco! -= cuota.monto;
+      if (cliente.saldoBanco === undefined) {
+        console.error("El saldo bancario del cliente no está definido.");
+        return;
+      }
+      cliente.saldoBanco -= cuota.monto;
     }
 
     // Actualizar el estado de la cuota
     cuota.estadoPago = 'Pagada';
 
-    const asiento: Asiento = {
-      fecha: new Date(),
-      descripcion: `Pago de Cuota - Factura ${cuota.venta.nroFactura}`,
-      usuarioEmail: this.authService.getAuthenticatedUserEmail()
-    };
+    // Obtener el usuario autenticado correctamente
+    this.userService
+      .getUserByEmail(this.authService.getAuthenticatedUserEmail())
+      .toPromise()
+      .then(usuario => {
+        if (!usuario) {
+          console.error("No se pudo obtener el usuario autenticado.");
+          return;
+        }
 
-    // Crear las cuentas afectadas
-    const cuentasAfectadas: CuentaAsiento[] = [];
-    let sumatoriaHaber = 0;
+        const asiento: Asiento = {
+          fecha: new Date(),
+          descripcion: `Pago de Cuota - Factura ${cuota.venta.nroFactura}`,
+          usuario: usuario,
+        };
 
-    this.formasDePago.forEach(pago => {
-      pago.venta = cuota.venta;
-      pago.cuota = cuota;
+        // Resto del código para crear cuentas afectadas y guardar datos
+        const cuentasAfectadas: CuentaAsiento[] = [];
+        let sumatoriaHaber = 0;
 
-      cuentasAfectadas.push({
-        id: undefined!,
-        cuenta: pago.cuenta,
-        asiento,
-        debe: pago.cantidad,
-        haber: 0,
-        saldo: pago.cuenta.saldoActual + pago.cantidad,
+        this.formasDePago.forEach(pago => {
+          pago.venta = cuota.venta;
+          pago.cuota = cuota;
+
+          cuentasAfectadas.push({
+            id: undefined!,
+            cuenta: pago.cuenta,
+            asiento,
+            debe: pago.cantidad,
+            haber: 0,
+            saldo: pago.cuenta.saldoActual + pago.cantidad,
+          });
+          sumatoriaHaber += pago.cantidad;
+        });
+
+        cuentasAfectadas.push({
+          id: undefined!,
+          cuenta: this.cuentas.find(c => c.nombre === 'Deudores por ventas')!,
+          asiento,
+          debe: 0,
+          haber: sumatoriaHaber,
+          saldo: cliente.saldoCuenta! - sumatoriaHaber,
+        });
+
+        // Guardar asiento contable
+        this.cuentaAsientoService.crearCuentasAsiento(asiento, cuentasAfectadas);
+        this.pagosService.createPagos(this.formasDePago);
+        this.cuotasService.updateCuota(cuota).subscribe(() => {
+          this.cuotas = this.cuotas.filter(c => c.id !== id);
+          this.filtrarCuotasPendientes(cuota.venta.id!);
+          this.formasDePago = [];
+          alert("Pago realizado con éxito");
+        });
+      })
+      .catch(error => {
+        console.error("Error al obtener el usuario autenticado:", error);
       });
-      sumatoriaHaber += pago.cantidad;
-    });
-
-    cuentasAfectadas.push({
-      id: undefined!,
-      cuenta: this.cuentas.find(c => c.nombre === 'Deudores por ventas')!,
-      asiento,
-      debe: 0,
-      haber: sumatoriaHaber,
-      saldo: cuota.venta.cliente!.saldoCuenta! - sumatoriaHaber
-    });
-
-    // Guardar asiento contable
-    this.cuentaAsientoService.crearCuentasAsiento(asiento, cuentasAfectadas);
-    this.pagosService.createPagos(this.formasDePago);
-    this.cuotasService.updateCuota(cuota).subscribe(() => {
-      // Actualizar cuotas en tiempo real
-      this.cuotas = this.cuotas.filter(c => c.id !== id); // Eliminar la cuota pagada
-      this.filtrarCuotasPendientes(cuota.venta.id!); // Actualizar cuotas pendientes
-      this.formasDePago = [];
-      alert("Pago realizado con éxito");
-    });
   }
 
   verificarAsientoContable(cuota: Cuotas) {

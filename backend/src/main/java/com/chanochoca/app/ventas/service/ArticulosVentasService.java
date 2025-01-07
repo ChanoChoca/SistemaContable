@@ -1,6 +1,5 @@
 package com.chanochoca.app.ventas.service;
 
-import com.chanochoca.app.contable.models.entity.CuentaAsiento;
 import com.chanochoca.app.ventas.models.entity.ArticulosVentas;
 import com.chanochoca.app.ventas.models.entity.Cuotas;
 import com.chanochoca.app.ventas.models.entity.Pagos;
@@ -14,4 +13,6 @@ public interface ArticulosVentasService {
     List<ArticulosVentas> findByMonth(String mes);
 
     List<ArticulosVentas> getAll();
+
+    List<ArticulosVentas> findByVentaId(Long ventaId);
 }

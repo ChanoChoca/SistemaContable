@@ -31,4 +31,9 @@ public class VentasServiceImpl implements VentasService {
     public List<Ventas> getVentasByClienteEmail(String userEmail) {
         return ventasRepository.findVentasByClienteEmail(userEmail);
     }
+
+    @Override
+    public Ventas findById(long ventaId) {
+        return ventasRepository.findById(ventaId).get();
+    }
 }

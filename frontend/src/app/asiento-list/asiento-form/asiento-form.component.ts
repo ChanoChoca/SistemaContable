@@ -19,6 +19,8 @@ import {AuthService} from "../../core/auth/auth.service";
 import {Router} from "@angular/router";
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {faXmark} from "@fortawesome/free-solid-svg-icons/faXmark";
+import {UserService} from "../../services/user.service";
+import {User} from "../../core/model/user.model";
 
 @Component({
   selector: 'app-asiento-form',
@@ -47,6 +49,7 @@ export class AsientoFormComponent implements OnInit {
     private cuentaService: CuentaService,
     private asientoService: AsientoService,
     private cuentaAsientoService: CuentaAsientoService,
+    private usuarioService: UserService,
     private router: Router
   ) {
     this.asientoForm = this.fb.group({
@@ -158,11 +161,12 @@ export class AsientoFormComponent implements OnInit {
 
   async onSubmit() {
     if (this.asientoForm.valid && !this.montosExcedenSaldo) {
+      const usuario: User | undefined = await this.usuarioService.getUserByEmail(this.authService.getAuthenticatedUserEmail()).toPromise();
       // Crear el objeto Asiento
       const asiento: Asiento = {
         fecha: new Date(this.asientoForm.value.fecha),
         descripcion: this.asientoForm.value.descripcion,
-        usuarioEmail: this.authService.getAuthenticatedUserEmail()
+        usuario: usuario!
       };
 
       // Si no hay cuentas, solo crear el asiento

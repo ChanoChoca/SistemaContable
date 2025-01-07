@@ -18,10 +18,8 @@ public class Ventas {
     private String tipo;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "cliente_id", nullable = false) // Cambiar a cliente_id
     private User cliente;
-
-    private int nroComprobante;
 
     private BigDecimal monto;
 
@@ -29,7 +27,9 @@ public class Ventas {
 
     private String descripcion;
 
-    private String vendedorEmail;
+    @ManyToOne
+    @JoinColumn(name = "vendedor_id", nullable = false) // Cambiar a vendedor_id
+    private User vendedor;
 
     private String estado;
 
@@ -68,14 +68,6 @@ public class Ventas {
         this.cliente = cliente;
     }
 
-    public int getNroComprobante() {
-        return nroComprobante;
-    }
-
-    public void setNroComprobante(int nroComprobante) {
-        this.nroComprobante = nroComprobante;
-    }
-
     public BigDecimal getMonto() {
         return monto;
     }
@@ -100,12 +92,12 @@ public class Ventas {
         this.descripcion = descripcion;
     }
 
-    public String getVendedorEmail() {
-        return vendedorEmail;
+    public User getVendedor() {
+        return vendedor;
     }
 
-    public void setVendedorEmail(String vendedorEmail) {
-        this.vendedorEmail = vendedorEmail;
+    public void setVendedor(User vendedor) {
+        this.vendedor = vendedor;
     }
 
     public String getEstado() {

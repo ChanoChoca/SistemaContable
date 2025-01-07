@@ -27,6 +27,16 @@
         }
       </select>
 
+      @if (nuevaVenta.cliente?.cuit === null) {
+        <label for="nroDocumento">CUIT:</label>
+        <input id="nroDocumento" type="number" [min]="10000000000" [max]="999999999999" [(ngModel)]="cuitTemp" name="nroDocumento" required class="px-1 py-2 rounded-lg"/>
+      }
+
+      @if (nuevaVenta.cliente?.direccion == null) {
+        <label for="direccion">Dirección:</label>
+        <input id="direccion" type="text" [(ngModel)]="direccionTemp" name="direccion" required class="px-1 py-2 rounded-lg"/>
+      }
+
       <label for="descripcion">Descripción:</label>
       <input id="descripcion" type="text" [(ngModel)]="nuevaVenta.descripcion" name="descripcion" required class="px-1 py-2 rounded-lg"/>
 

@@ -2,11 +2,13 @@
   @if (authService.isAuthenticated()) {
     <h1>Datos del Cliente</h1>
     <div class="my-10">
-      <div class="inline-grid grid-cols-2 gap-5">
+      <div class="inline-flex flex-col md:inline-grid grid-cols-2 gap-5">
         <div>
           <p>Nombre: {{user?.firstName}}</p>
           <p>Apellido: {{user?.lastName}}</p>
           <p>Email: {{user?.email}}</p>
+          <p>CUIT: {{user?.cuit}}</p>
+          <p>Dirección: {{user?.direccion}} </p>
         </div>
         <div>
           <p>Saldo en cuenta: {{user?.saldoCuenta}}</p>
@@ -17,48 +19,95 @@
       </div>
     </div>
 
-    <h2>Compras realizadas</h2>
+    <div>
+      <button class="btn-pseudoclase" (click)="mostrarFormulario = !mostrarFormulario">
+        {{ mostrarFormulario ? 'Cancelar' : 'Modificar CUIT / Dirección' }}
+      </button>
+    </div>
 
+    @if (mostrarFormulario) {
+      <div>
+        <form #updateForm="ngForm" (ngSubmit)="actualizarCuitYDireccion(updateForm)">
+          <div class="my-5">
+            <div class="md:inline pe-3"><label for="nroDocumento">CUIT:</label></div>
+            <input type="number" id="nroDocumento" name="nroDocumento" min="1000000" [defaultValue]="1000000" class="px-1 py-2 rounded-lg" [(ngModel)]="cuitTemp" (ngModelChange)="user!.cuit = $event" required/>
+          </div>
+          <div class="my-5">
+            <div class="md:inline pe-3"><label for="direccion">Dirección:</label></div>
+            <input type="text" id="direccion" name="direccion" class="px-1 py-2 rounded-lg" [(ngModel)]="direccionTemp" (ngModelChange)="user!.direccion = $event" required/>
+          </div>
+          <button type="submit" class="btn-pseudoclase" [disabled]="!updateForm.valid">Actualizar</button>
+        </form>
+      </div>
+    }
+
+    <!-- Tabla de ventas -->
     @if (ventas.length !== 0) {
+      <h2>Compras realizadas</h2>
       <div style="text-align: -webkit-center;">
         <table class="table table-striped mt-10 text-center">
           <thead>
           <tr>
             <th>#</th>
             <th>Fecha</th>
-            <th>Vendedor</th>
             <th>Tipo</th>
             <th>Forma de Pago</th>
             <th>Monto</th>
             <th>Estado</th>
             <th>Acciones</th>
+            <th>Imprimir Factura</th>
           </tr>
           </thead>
           <tbody>
-            @for (venta of ventas; track venta; let i = $index) {
-              <tr>
-                <td>{{ i + 1 }}</td>
-                <td>{{ formatearFecha(venta.fecha) }}</td>
-                <td>{{ venta.vendedorEmail }}</td>
-                <td>{{ venta.tipo }}</td>
-                <td>
-                  @for (pago of pagosFiltrados[venta.id!]; track pago) {
-                    <div>{{ pago.cuenta.nombre }} ({{ pago.cantidad }})</div>
-                  }
-                </td>
-                <td>{{ venta.monto}}</td>
-                <td>{{ venta.estado }}</td>
-                <td>
-                  @if (venta.tipo === 'Crédito' && venta.estado === 'Pendiente') {
-                    <button class="btn-pseudoclase" [routerLink]="['/cliente/cuotas']" [queryParams]="{ ventaId: venta.id }">Pagar Cuotas</button>
-                  }
-                  <!-- Lo comentado en otro momento se hará... -->
-                  <!--                <button type="button" class="btn-pseudoclase" (click)="imprimirFacturaVenta(venta.id!)">Imprimir Venta<fa-icon [icon]="faDownload" size="2x"/></button>-->
-                </td>
-              </tr>
-            }
+          @for (venta of ventas; track venta; let i = $index) {
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>{{ formatearFecha(venta.fecha) }}</td>
+              <td>{{ venta.tipo }}</td>
+              <td>
+                @for (pago of pagosFiltrados[venta.id!]; track pago) {
+                  <div>
+                    {{ pago.cuenta.nombre }} ({{ pago.cantidad }})
+                  </div>
+                }
+              </td>
+              <td>{{ venta.monto }}</td>
+              <td>{{ venta.estado }}</td>
+              <td>
+                @if (venta.tipo === 'Crédito' && venta.estado === 'Pendiente') {
+                  <button class="btn-pseudoclase" [routerLink]="['/cliente/cuotas']" [queryParams]="{ ventaId: venta.id }">Pagar Cuotas</button>
+                }
+              </td>
+              <td>
+                <button type="button" class="btn-pseudoclase" (click)="abrirModal(venta.id!)">Imprimir<fa-icon [icon]="faDownload" size="2x" class="ms-3"></fa-icon></button>
+              </td>
+            </tr>
+          }
           </tbody>
         </table>
+      </div>
+    } @else {
+      <h2 class="mt-10">No se realizaron compras</h2>
+    }
+    <!-- Modal -->
+    @if (modalVisible) {
+      <div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
+        <div class="p-6 rounded-lg shadow-lg w-96" style="background: #2a9d8f">
+          <h3 class="text-xl mb-4 text-white">Selecciona el tipo de factura</h3>
+          <div class="mb-4">
+            <label class="block mb-2">Tipo de Factura</label>
+            <select [(ngModel)]="selectedCbteTipo" class="form-select block w-full px-1 py-2 rounded-lg">
+              <option value="1">Factura A</option>
+              <option value="6">Factura B</option>
+<!--              <option value="11">Factura C</option>-->
+              <option value="51">Factura M</option>
+            </select>
+          </div>
+          <div class="flex justify-between">
+            <button class="btn-pseudoclase bg-gray-500 text-white px-4 py-2 rounded" (click)="cerrarModal()">Cancelar</button>
+            <button class="btn-pseudoclase bg-blue-500 text-white px-4 py-2 rounded" (click)="imprimirFacturaElectronica(ventaId, selectedCbteTipo)">Imprimir</button>
+          </div>
+        </div>
       </div>
     }
   }

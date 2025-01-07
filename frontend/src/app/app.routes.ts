@@ -129,10 +129,6 @@ export const routes: Routes = [
       authorities: ["ROL_ADMIN", "ROL_EMPLEADO"]
     }
   },
-  // {
-  //   path: 'factura',
-  //   component: FacturaComponent
-  // },
   {
     path: 'venta/new',
     component: RegistroVentaComponent,

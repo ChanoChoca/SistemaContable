@@ -36,4 +36,9 @@ public class ArticulosVentasController {
     public List<ArticulosVentas> getArticulosVentasByMonth(@RequestParam String mes) {
         return articulosVentasService.findByMonth(mes);
     }
+
+    @GetMapping("get-by-ventaId")
+    public List<ArticulosVentas> getArticulosVentasByMonth(@RequestParam Long ventaId) {
+        return articulosVentasService.findByVentaId(ventaId);
+    }
 }

@@ -29,6 +29,10 @@ public class User extends AbstractAuditingEntity<Long> {
     @Column(name = "email")
     private String email;
 
+    private Long cuit;
+
+    private String direccion;
+
     private BigDecimal saldoCuenta;
 
     @Column(name = "limite")
@@ -86,6 +90,22 @@ public class User extends AbstractAuditingEntity<Long> {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Long getCuit() {
+        return cuit;
+    }
+
+    public void setCuit(Long cuit) {
+        this.cuit = cuit;
+    }
+
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public void setDireccion(String direccion) {
+        this.direccion = direccion;
     }
 
     public BigDecimal getSaldoCuenta() {

@@ -8,6 +8,7 @@ import {ArticulosVentas} from "../models/articulos-ventas";
 import {User} from "../core/model/user.model";
 import {State} from "../core/model/state.model";
 import {Cuenta} from "../models/cuenta.model";
+import {Comprobantes} from "../models/comprobantes";
 
 @Injectable({
   providedIn: 'root'
@@ -49,5 +50,9 @@ export class PagosService {
         next: createdPagos => this.createPagos$.set(State.Builder<Pagos[]>().forSuccess(createdPagos)),
         error: err => this.createPagos$.set(State.Builder<Pagos[]>().forError(err)),
       });
+  }
+
+  getPagosByVentaId(ventaId: number): Observable<Pagos[]> {
+    return this.http.get<Pagos[]>(`${environment.API_URL}/pagos/getPagosByVentaId`, { params: { ventaId } });
   }
 }

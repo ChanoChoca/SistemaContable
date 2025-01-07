@@ -1,6 +1,7 @@
 package com.chanochoca.app.ventas.repository;
 
 import com.chanochoca.app.ventas.models.entity.ArticulosVentas;
+import com.chanochoca.app.ventas.models.entity.Ventas;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -13,4 +14,8 @@ public interface ArticulosVentasRepository extends CrudRepository<ArticulosVenta
 
     @Query("SELECT av FROM ArticulosVentas av WHERE MONTH(av.venta.fecha) = :mes")
     List<ArticulosVentas> findByVenta_FechaMonth(@Param("mes") int mes);
+
+    List<ArticulosVentas> findByVenta_Id(Long ventaId);
+
+    Long venta(Ventas venta);
 }

@@ -35,8 +35,7 @@ public class ArticulosVentasServiceImpl implements ArticulosVentasService {
             return articulosVentas;
         }
 
-        venta.setNroComprobante(getNextNroComprobante());
-        venta.setNroFactura(getNextNroComprobante());
+        venta.setNroFactura(getNextNroFactura());
         Ventas ventaGuardada = ventasRepository.save(venta);
 
         if (!cuotas.isEmpty()) {
@@ -57,7 +56,7 @@ public class ArticulosVentasServiceImpl implements ArticulosVentasService {
         for (ArticulosVentas articuloVenta : articulosVentas) {
             articuloVenta.setVenta(ventaGuardada);
             articuloVenta.getVenta().setCliente(ventaGuardada.getCliente());
-            articuloVenta.getVenta().setVendedorEmail(ventaGuardada.getVendedorEmail());
+            articuloVenta.getVenta().setVendedor(ventaGuardada.getVendedor());
             articulosVentasRepository.save(articuloVenta);
         }
 
@@ -98,9 +97,14 @@ public class ArticulosVentasServiceImpl implements ArticulosVentasService {
         return (List<ArticulosVentas>) articulosVentasRepository.findAll();
     }
 
+    @Override
+    public List<ArticulosVentas> findByVentaId(Long ventaId) {
+        return articulosVentasRepository.findByVenta_Id(ventaId);
+    }
+
     // Método para obtener el siguiente número de comprobante
-    private int getNextNroComprobante() {
-        Integer maxNroComprobante = ventasRepository.findMaxNroComprobante();  // Ahora devuelve un Integer
-        return (maxNroComprobante != null) ? maxNroComprobante + 1 : 1;  // Si es null, empezar desde 1
+    private int getNextNroFactura() {
+        Integer maxNroFactura = ventasRepository.findMaxNroFactura();  // Ahora devuelve un Integer
+        return (maxNroFactura != null) ? maxNroFactura + 1 : 1;  // Si es null, empezar desde 1
     }
 }

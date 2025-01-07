@@ -36,7 +36,7 @@ public class CuentaAsientoServiceImpl implements CuentaAsientoService {
         // Guardar los CuentaAsiento asociados
         for (CuentaAsiento cuentaAsiento : cuentasAsientos) {
             cuentaAsiento.setAsiento(asiento);
-            cuentaAsiento.getAsiento().setUsuarioEmail(asiento.getUsuarioEmail());
+            cuentaAsiento.getAsiento().setUsuario(asiento.getUsuario());
             cuentaAsientoRepository.save(cuentaAsiento);
         }
 

@@ -3,6 +3,8 @@ export interface User {
   firstName?: string;
   lastName?: string;
   email?: string;
+  cuit?: number | null;
+  direccion?: string;
   imageUrl?: string;
   saldoCuenta?: number;
   limite?: number;

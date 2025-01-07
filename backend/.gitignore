@@ -31,3 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
+temp_token.properties
+MiCertificado.p12

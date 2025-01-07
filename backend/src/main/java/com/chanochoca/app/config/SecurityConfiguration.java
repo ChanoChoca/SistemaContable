@@ -55,6 +55,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/api/articulos-ventas").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/ventas").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/pagos/getPagosByVentaId").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/pagos").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/pagos").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/ventas/{id}").permitAll()
@@ -64,9 +65,14 @@ public class SecurityConfiguration {
 
                         .requestMatchers(HttpMethod.POST, "/api/facturas/generar").permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/api/wsfe/comprobante").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/wsfe/factura").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/wsfe/crear-comprobantes").permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/auth/get-authenticated-user").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/usuarios").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/auth/balance").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/auth/nroDocumento").permitAll()
 //                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "assets/*").permitAll()
