@@ -254,12 +254,12 @@ export class ClienteComponent implements OnInit {
                     // Datos variables (debe ser obtenido de la respuesta de AFIP)
                     const datos = {
                       ver: 1,
-                      fecha: fechaFormateada, //Espera recibir un formato DD/MM/AAAA pero se obtiene 20241231
-                      cuit: 20429631778, // Esto también puede venir del comprobante
+                      fecha: fechaFormateada,
+                      cuit: 20429631778,
                       ptoVta: resultGet.PtoVta,
                       tipoCmp: resultGet.CbteTipo,
                       nroCmp: comprobante.comprobanteNro,
-                      importe: resultGet.ImpTotal, // O el importe que corresponda
+                      importe: resultGet.ImpTotal,
                       moneda: resultGet.MonId,
                       ctz: 1,
                       //DocTipo puede ser 80 o 99
@@ -281,11 +281,11 @@ export class ClienteComponent implements OnInit {
 
                     img.onload = function () {
                       // Agregar la imagen al PDF
-                      doc.addImage(img, 'PNG', 40, tableHeight + 46, 590/10, 60/10);
+                      doc.addImage(img, 'PNG', 40, tableHeight + 50, 590/7, 60/7);
 
-                      doc.text('Comprobante Autorizado', 40, tableHeight + 46 + (60 / 10) + 6);
+                      doc.text('Comprobante Autorizado', 40, tableHeight + 50 + (60 / 7) + 6);
                       doc.setFontSize(8)
-                      doc.text('Esta Administración Federal no se responsabiliza por los datos ingresados en el detalle de la operación', 40, tableHeight + 46 + (60 / 10) + 16);
+                      doc.text('Esta Administración Federal no se responsabiliza por los datos ingresados en el detalle de la operación', 40, tableHeight + 50 + (60 / 10) + 16);
 
                       // Generar el código QR y agregarlo al PDF
                       QRCode.toDataURL(urlQR, function (err, url) {

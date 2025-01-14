@@ -1,4 +1,4 @@
-# Frontend
+# Sistema Contable Frontend
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.6.
 
@@ -25,34 +25,3 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
-
-src/app/
-├── core/                               # Módulo Core con servicios y lógica global
-│   ├── auth/                           # Servicio de autenticación (manejo de usuario y permisos)
-│   ├── guards/                         # Guardas de rutas (seguridad, roles, etc.)
-│   ├── interceptors/                   # Interceptores HTTP para autenticación
-│   └── services/                       # Servicios generales
-│       └── pdf-generator.service.ts    # Servicio para generación de PDFs
-├── modules/                            # Módulos funcionales organizados por característica
-│   ├── login/                          # Módulo de autenticación (login de usuarios)
-│   │   ├── login.component.ts
-│   │   ├── login.service.ts
-│   ├── cuenta/                         # Administración del plan de cuentas
-│   │   ├── cuenta-list.component.ts
-│   │   ├── cuenta-form.component.ts
-│   │   ├── cuenta.service.ts
-│   ├── asiento-contable/               # Módulo de asientos contables
-│   │   ├── asiento-list.component.ts
-│   │   ├── asiento-form.component.ts
-│   │   ├── asiento-contable.service.ts
-│   ├── reportes/                       # Módulo de reportes (libro diario y mayor)
-│   │   ├── libro-diario.component.ts
-│   │   ├── libro-mayor.component.ts
-│   │   ├── reportes.service.ts
-│   └── usuario/                        # Módulo de usuarios (administración)
-│       ├── usuario-list.component.ts
-│       ├── usuario-form.component.ts
-│       └── usuario.service.ts
-└── app-routing.module.ts               # Definición de rutas
-└── app.component.ts                    # Componente raíz
-└── app.module.ts                       # Módulo raíz

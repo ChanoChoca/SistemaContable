@@ -1,4 +1,4 @@
-clave fiscal codigo: BL6234139900763
+# Sistema Contable Backend
 
 Generar clave privada
 ```bash
@@ -24,6 +24,7 @@ Generar certificado p12
 openssl pkcs12 -export -out MiCertificado.p12 -inkey MiClavePrivada.key -in MiCertificado.pem -certfile MiCertificado.pem
 ```
 
+Referencias:
 
-https://wsass-homo.afip.gob.ar/wsass/portal/main.aspx
-
+* [Documentación ARCA](https://www.afip.gob.ar/ws/documentacion/wsaa.asp)
+* [Código QR](https://www.afip.gob.ar/fe/qr/ejemplo-de-comprobante.asp)

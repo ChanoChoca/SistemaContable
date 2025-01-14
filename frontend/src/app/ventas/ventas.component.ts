@@ -13,6 +13,7 @@ import {ArticulosVentasService} from "../services/articulos-ventas.service";
 import {ArcaService} from "../services/arca.service";
 import {ArticulosVentas} from "../models/articulos-ventas";
 import {FormsModule} from "@angular/forms";
+import QRCode from "qrcode";
 
 @Component({
   selector: 'app-ventas',
@@ -295,11 +296,60 @@ export class VentasComponent implements OnInit {
                     doc.line(0, tableHeight + 42, pdfWidth, tableHeight + 42);
                     doc.text(`CAE Nº: ${resultGet.CodAutorizacion}`, pdfWidth / 2 + 30, tableHeight + 52);
                     doc.text(`Fecha de Vto. de CAE: ${this.formatearFechaVto(resultGet.FchVto)}`, pdfWidth / 2 + 30, tableHeight + 62);
+
+                    const fechaString = resultGet.CbteFch.toString();
+                    const fechaFormateada = `${fechaString.slice(0, 4)}-${fechaString.slice(4, 6)}-${fechaString.slice(6, 8)}`;
+
+                    // Datos variables (debe ser obtenido de la respuesta de AFIP)
+                    const datos = {
+                      ver: 1,
+                      fecha: fechaFormateada,
+                      cuit: 20429631778,
+                      ptoVta: resultGet.PtoVta,
+                      tipoCmp: resultGet.CbteTipo,
+                      nroCmp: comprobante.comprobanteNro,
+                      importe: resultGet.ImpTotal,
+                      moneda: resultGet.MonId,
+                      ctz: 1,
+                      //DocTipo puede ser 80 o 99
+                      //En caso de que DocTipo sea 99, DocNro será 0.
+                      tipoDocRec: resultGet.DocTipo || null, // Solo si aplica
+                      nroDocRec: resultGet.DocNro || null, // Solo si aplica
+                      tipoCodAut: 'E',
+                      codAut: resultGet.CodAutorizacion,
+                    };
+
+                    // Generar la URL del QR
+                    const base64Data = this.encodeBase64(datos);
+                    const urlQR = `https://www.afip.gob.ar/fe/qr/?p=${base64Data}`;
+
+                    // Cargar la imagen de tu aplicación
+                    const imagePath = 'assets/images/arca.png';
+                    const img = new Image();
+                    img.src = imagePath;
+
+                    img.onload = function () {
+                      // Agregar la imagen al PDF
+                      doc.addImage(img, 'PNG', 40, tableHeight + 50, 590/7, 60/7);
+
+                      doc.text('Comprobante Autorizado', 40, tableHeight + 50 + (60 / 7) + 6);
+                      doc.setFontSize(8)
+                      doc.text('Esta Administración Federal no se responsabiliza por los datos ingresados en el detalle de la operación', 40, tableHeight + 50 + (60 / 10) + 16);
+
+                      // Generar el código QR y agregarlo al PDF
+                      QRCode.toDataURL(urlQR, function (err, url) {
+                        if (err) {
+                          console.error('Error generando el QR:', err);
+                        } else {
+                          doc.addImage(url, 'PNG', 10, tableHeight + 46, 30, 30);
+
+                          // Descargar el PDF
+                          doc.save(`Factura_${resultGet.CbteDesde}.pdf`);
+                        }
+                      });
+                    };
                   }
                 });
-
-                // Descargar PDF
-                doc.save(`Factura_${resultGet.CbteDesde}.pdf`);
               });
             });
           },
@@ -315,6 +365,11 @@ export class VentasComponent implements OnInit {
 
     // Cerrar el modal después de la operación
     this.cerrarModal();
+  }
+
+  encodeBase64(jsonData: object): string {
+    const jsonString = JSON.stringify(jsonData);
+    return btoa(jsonString); // Convierte el JSON a Base64
   }
 
   protected readonly faDownload = faDownload;
